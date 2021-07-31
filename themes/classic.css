@@ -1,0 +1,131 @@
+.minesweeper {
+  border-top: 2px solid white;
+  border-left: 2px solid white;
+  border-right: 2px solid grey;
+  border-bottom: 2px solid grey;
+  background: lightgrey;
+  padding: 10px;
+}
+
+.minesweeper .hud {
+  border-top: 2px solid grey;
+  border-left: 2px solid grey;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  background: lightgrey;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.minesweeper .remaining { order: 1; }
+.minesweeper .score { order: 3; }
+.minesweeper .remaining,
+.minesweeper .score {
+  color: red;
+  font: bold 2rem monospace;
+  background: black;
+  width: 6rem;
+  text-align: center;
+}
+
+.minesweeper .reset {
+  order: 2;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.5rem;
+  border-top: 2px solid white;
+  border-left: 2px solid white;
+  border-right: 2px solid darkgrey;
+  border-bottom: 2px solid darkgrey;
+  box-shadow: 0 0 0 1px darkgrey;
+  line-height: 1.3;
+}
+.minesweeper .reset:active {
+  background: darkgrey;
+  border-color: transparent;
+}
+.minesweeper .reset:before { content: "\1F642"; }
+.minesweeper.picking .reset:before { content: "\1F62F"; }
+.minesweeper.over.success .reset:before { content: "\1F60E"; }
+.minesweeper.over.failure .reset:before { content: "\1F480"; }
+
+.minesweeper .minefield {
+  grid-auto-columns: calc(1rem + 4px);
+  grid-auto-rows: calc(1rem + 4px);
+  border-top: 1px solid grey;
+  border-left: 1px solid grey;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  background: lightgrey;
+}
+
+.minesweeper .cell, .minesweeper .cell:disabled {
+  background: lightgrey;
+  border-top: 2px solid white;
+  border-left: 2px solid white;
+  border-right: 2px solid darkgrey;
+  border-bottom: 2px solid darkgrey;
+  font: 1rem sans-serif;
+}
+.minesweeper .cell:after {
+  position: absolute;
+  top: -0.2em;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+.minesweeper:not(.picking) .cell:not(.flagged):active,
+.minesweeper.picking .cell:not(.flagged):hover {
+  background: darkgrey;
+  border-color: transparent;
+}
+.minesweeper .cell.flagged:before { content: "\2691"; }
+.minesweeper .cell.cleared:not(.bomb):before { content: attr(data-count); }
+.minesweeper .cell.cleared:not(.bomb)[data-count="0"]:disabled:before { display: none; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="1"]:disabled { color: blue; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="2"]:disabled { color: green; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="3"]:disabled { color: red; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="4"]:disabled { color: navy; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="5"]:disabled { color: darkred; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="6"]:disabled { color: darkcyan; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="7"]:disabled { color: black; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="8"]:disabled { color: grey; }
+
+.minesweeper .cell.cleared,
+.minesweeper.over .cell.bomb,
+.minesweeper.over .cell.flagged:not(.bomb) {
+  border-top: 1px solid grey;
+  border-left: 1px solid grey;
+  border-right: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+}
+
+.minesweeper.over .cell.flagged:not(.bomb):before {
+  opacity: 0.6;
+}
+.minesweeper.over .cell.flagged:not(.bomb):after {
+  content: "\2715";
+  color: red;
+  line-height: 1.5;
+  text-shadow: 0 0 2px white;
+}
+.minesweeper.over .cell.flagged:not(.bomb):before,
+.minesweeper.over .cell.bomb:before {
+  content: "\1F4A3";
+  line-height: 1.4;
+}
+.minesweeper.over .cell.bomb.cleared { background: red; }
+.minesweeper.over .cell.bomb.cleared:after {
+  content: "\1F4A5";
+}
+
+.minesweeper:not(.over) .cell.bomb {
+  font-size: 0.5rem;
+}
+.minesweeper:not(.over) .cell.bomb:before {
+  content: "\1F4A3";
+  opacity: 0.3;
+}
