@@ -39,7 +39,7 @@ class MinesweeperDisplay extends EventTarget {
     this.base.appendChild(this.minefield);
 
     this.game = null;
-    this.cells = [];
+    this.cells = new Map();
     this.clickBegin = null;
     this.over = false;
   }
@@ -66,7 +66,7 @@ class MinesweeperDisplay extends EventTarget {
       return;
     }
 
-    this.rebuildGrid(game.rows, game.cols);
+    this.rebuildGrid(game.grid);
 
     this.over = false;
     this.updateGameState();
@@ -76,50 +76,40 @@ class MinesweeperDisplay extends EventTarget {
     game.addEventListener('cellchange', this.cellChangeHandler);
   }
 
-  rebuildGrid(rows, cols) {
+  rebuildGrid(grid) {
     this.minefield.innerText = '';
-    this.cells = [];
-    for (let y = 0; y < rows; ++y) {
-      const row = [];
-      for (let x = 0; x < cols; ++x) {
-        const cell = document.createElement('button');
-        cell.className = 'cell';
-        cell.style.gridArea = `${y + 1} / ${x + 1} / ${y + 2} / ${x + 2}`;
-        cell.dataset.x = x;
-        cell.dataset.y = y;
-        this.minefield.appendChild(cell);
-        row.push(cell);
-      }
-      this.cells.push(row);
-    }
+    this.cells.clear();
+    grid.idGrid().forEach((row, y) => row.forEach((id, x) => {
+      const cell = document.createElement('button');
+      cell.className = 'cell';
+      cell.style.gridArea = `${y + 1} / ${x + 1} / ${y + 2} / ${x + 2}`;
+      cell.dataset.id = id;
+      this.minefield.appendChild(cell);
+      this.cells.set(id, cell);
+    }));
     this.base.classList.remove('picking');
     window.removeEventListener('mouseup', this.cellMouseUp);
     this.clickBegin = null;
   }
 
   updateAllCells(onlyNonCleared) {
-    for (let y = 0; y < this.game.rows; ++y) {
-      for (let x = 0; x < this.game.cols; ++x) {
-        const cell = this.game.cell(x, y);
-        if (!onlyNonCleared || !cell.cleared) {
-          this.updateCell(cell);
-        }
-      }
+    for (const id of this.game.grid.idList()) {
+      this.updateCell(id, onlyNonCleared);
     }
   }
 
-  updateCell(data) {
-    const cell = this.cells[data.y][data.x];
-    cell.classList.toggle('flagged', data.flagged);
-    cell.classList.toggle('cleared', data.cleared);
-    cell.disabled = this.over || data.cleared;
-    if (this.over || data.cleared) {
-      cell.classList.toggle('bomb', data.bomb);
-      cell.dataset.count = data.count;
-    } else {
-      cell.classList.remove('bomb');
-      cell.dataset.count = -1;
+  updateCell(id, onlyNonCleared) {
+    const cellData = this.game.cell(id);
+    if (onlyNonCleared && cellData.cleared) {
+      return;
     }
+
+    const cell = this.cells.get(id);
+    cell.classList.toggle('flagged', cellData.flagged);
+    cell.classList.toggle('cleared', cellData.cleared);
+    cell.disabled = this.over || cellData.cleared;
+    cell.classList.toggle('bomb', Boolean(cellData.bomb));
+    cell.dataset.count = cellData.count;
   }
 
   updateGameState() {
@@ -141,7 +131,7 @@ class MinesweeperDisplay extends EventTarget {
   }
 
   cellChangeHandler(e) {
-    this.updateCell(e.detail);
+    this.updateCell(e.detail, false);
   }
 
   reset() {
@@ -158,7 +148,7 @@ class MinesweeperDisplay extends EventTarget {
       return;
     }
     if (e.target.parentElement === this.minefield && e.target.classList.contains('cell')) {
-      this.game.revealCell(Number(e.target.dataset.x), Number(e.target.dataset.y));
+      this.game.revealCell(Number(e.target.dataset.id));
     }
   }
 
@@ -188,7 +178,7 @@ class MinesweeperDisplay extends EventTarget {
     e.preventDefault();
 
     if (e.target.parentElement === this.minefield && e.target.classList.contains('cell')) {
-      this.game.toggleFlag(Number(e.target.dataset.x), Number(e.target.dataset.y));
+      this.game.toggleFlag(Number(e.target.dataset.id));
     }
   }
 }

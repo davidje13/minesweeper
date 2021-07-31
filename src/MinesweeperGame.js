@@ -3,164 +3,149 @@ function random(max) {
 }
 
 class MinesweeperGame extends EventTarget {
-  constructor(cols, rows, bombs, { rng = random, freeFirstPass = true } = {}) {
+  constructor(grid, bombs, { rng = random, freeFirstPass = true } = {}) {
     super();
-    if (
-      rows !== Math.round(rows) || rows <= 0 ||
-      cols !== Math.round(cols) || cols <= 0 ||
-      bombs !== Math.round(bombs) || bombs <= 0
-    ) {
+
+    if (bombs !== Math.round(bombs) || bombs <= 0) {
       throw new Error('Invalid game setup');
     }
 
-    const packed = bombs >= rows * cols;
-
-    this.rows = rows;
-    this.cols = cols;
-    this.bombs = Math.min(bombs, rows * cols);
-    this.freeFirstPass = freeFirstPass && !packed;
+    this.grid = grid;
+    this.freeFirstPass = freeFirstPass;
     this.rng = rng;
-
-    this.connectivity = [
-      { x: -1, y: -1 },
-      { x:  0, y: -1 },
-      { x:  1, y: -1 },
-      { x: -1, y:  0 },
-      { x:  1, y:  0 },
-      { x: -1, y:  1 },
-      { x:  0, y:  1 },
-      { x:  1, y:  1 },
-    ];
 
     this.flagged = 0;
     this.cleared = 0;
-    this.actualBombCount = 0;
-    this.success = packed; // nothing to do if fully packed with bombs
+    this.bombs = 0;
+    this.success = (bombs >= grid.count); // nothing to do if fully packed with bombs
     this.failure = false;
 
-    this.cells = [];
-    for (let y = 0; y < rows; ++y) {
-      for (let x = 0; x < cols; ++x) {
-        this.cells.push({ flagged: false, cleared: false, bomb: false, count: 0, x, y });
-      }
+    this.cellData = new Map();
+    for (const id of grid.idList()) {
+      this.cellData.set(id, { cleared: false, flagged: false, bomb: false, count: 0 });
     }
-    this.addRandomBombs(this.bombs);
+    this._addRandomBombs(Math.min(bombs, grid.count));
   }
 
-  cell(x, y) {
-    if (x < 0 || x >= this.cols || y < 0 || y >= this.rows) {
-      return null;
+  cell(id) {
+    const cellData = this.cellData.get(id);
+    if (cellData.cleared || this.success || this.failure) {
+      return { position: cellData.position, cleared: cellData.cleared, flagged: cellData.flagged, bomb: cellData.bomb, count: cellData.count };
+    } else {
+      return { position: cellData.position, cleared: cellData.cleared, flagged: cellData.flagged };
     }
-    return this.cells[y * this.cols + x];
   }
 
-  connectedCells({ x, y }) {
-    const connected = [];
-    for (const delta of this.connectivity) {
-      const cell = this.cell(x + delta.x, y + delta.y);
-      if (cell) {
-        connected.push(cell);
-      }
+  _addRandomBombs(count) {
+    const ids = this.pickRandomFreeIDs(count);
+    for (const id of ids) {
+      this._setBomb(id, true);
     }
-    return connected;
+    return ids;
   }
 
-  addRandomBombs(count) {
-    const positions = [];
-    let space = this.rows * this.cols - this.actualBombCount;
+  pickRandomFreeIDs(count) {
+    const indices = [];
+    let space = this.grid.count - this.bombs;
     for (let i = 0; i < count; ++i) {
       const v = this.rng(space);
       let n = 0;
-      while (n < positions.length && v + n >= positions[n]) {
+      while (n < indices.length && v + n >= indices[n]) {
         ++n;
       }
-      positions.splice(n, 0, v + n);
+      indices.splice(n, 0, v + n);
       --space;
     }
     let p = 0;
     let n = 0;
-    const changed = [];
-    for (let i = 0; n < positions.length && i < this.rows * this.cols; ++i) {
-      if (!this.cells[i].bomb) {
-        if (p === positions[n]) {
-          this.setBomb(this.cells[i], true);
-          changed.push(this.cells[i]);
+    const resultIDs = [];
+    for (const id of this.grid.idList()) {
+      if (!this.cellData.get(id).bomb) {
+        if (p === indices[n]) {
+          resultIDs.push(id);
           ++n;
+          if (n === indices.length) {
+            break;
+          }
         }
         ++p;
       }
     }
-    if (n !== positions.length) {
-      throw new Error('failed to place all bombs');
+    if (resultIDs.length !== count) {
+      throw new Error('failed to pick random locations');
     }
-    return changed;
+    return resultIDs;
   }
 
-  setBomb(cell, isBomb) {
-    cell.bomb = isBomb;
+  _setBomb(id, isBomb) {
+    this.cellData.get(id).bomb = isBomb;
     const deltaCount = isBomb ? 1 : -1;
-    this.actualBombCount += deltaCount;
-    for (const connectedCell of this.connectedCells(cell)) {
-      connectedCell.count += deltaCount;
+    this.bombs += deltaCount;
+    for (const connectedID of this.grid.connectedIDs(id)) {
+      this.cellData.get(connectedID).count += deltaCount;
     }
   }
 
-  revealCell(x, y, flood = true) {
-    const cell = this.cell(x, y);
-    if (cell.cleared || cell.flagged) {
+  revealCell(id, flood = true) {
+    if (this.success || this.failure) {
       return;
     }
-    if (cell.bomb) {
+
+    const cellData = this.cellData.get(id);
+    if (cellData.cleared || cellData.flagged) {
+      return;
+    }
+    if (cellData.bomb) {
       if (this.freeFirstPass && this.cleared === 0) {
-        const changed = this.addRandomBombs(1);
-        this.setBomb(cell, false);
-        this.dispatchEvent(new CustomEvent('cellchange', { detail: changed[0] }));
+        const changedIDs = this._addRandomBombs(1);
+        this._setBomb(position, false);
+        this.dispatchEvent(new CustomEvent('cellchange', { detail: changedIDs[0] }));
       } else {
-        cell.cleared = true;
+        cellData.cleared = true;
         this.failure = true;
-        this.dispatchEvent(new CustomEvent('cellchange', { detail: cell }));
+        this.dispatchEvent(new CustomEvent('cellchange', { detail: id }));
         this.dispatchEvent(new Event('change'));
         return;
       }
     }
 
-    cell.cleared = true;
-    const queue = [cell];
-    while (queue.length > 0) {
-      const curCell = queue.pop();
+    cellData.cleared = true;
+    const idQueue = [id];
+    while (idQueue.length > 0) {
+      const curID = idQueue.pop();
 
       ++this.cleared;
-      this.dispatchEvent(new CustomEvent('cellchange', { detail: curCell }));
+      this.dispatchEvent(new CustomEvent('cellchange', { detail: curID }));
 
-      if (flood && curCell.count === 0) {
-        for (const connectedCell of this.connectedCells(curCell)) {
-          if (!connectedCell.cleared && !connectedCell.flagged) {
-            connectedCell.cleared = true;
-            queue.push(connectedCell);
+      if (flood && this.cellData.get(curID).count === 0) {
+        for (const connectedID of this.grid.connectedIDs(curID)) {
+          const connectedCellData = this.cellData.get(connectedID);
+          if (!connectedCellData.cleared && !connectedCellData.flagged) {
+            connectedCellData.cleared = true;
+            idQueue.push(connectedID);
           }
         }
       }
     }
 
-    if (this.cleared >= this.rows * this.cols - this.bombs) {
+    if (this.cleared >= this.grid.count - this.bombs) {
       this.success = true;
     }
     this.dispatchEvent(new Event('change'));
   }
 
-  toggleFlag(x, y) {
-    const cell = this.cell(x, y);
-    if (cell.cleared) {
+  toggleFlag(id) {
+    if (this.success || this.failure) {
       return;
     }
-    if (cell.flagged) {
-      cell.flagged = false;
-      --this.flagged;
-    } else {
-      cell.flagged = true;
-      ++this.flagged;
+
+    const cellData = this.cellData.get(id);
+    if (cellData.cleared) {
+      return;
     }
-    this.dispatchEvent(new CustomEvent('cellchange', { detail: cell }));
+    cellData.flagged = !cellData.flagged;
+    this.flagged += (cellData.flagged ? 1 : -1);
+    this.dispatchEvent(new CustomEvent('cellchange', { detail: id }));
     this.dispatchEvent(new Event('change'));
   }
 }
