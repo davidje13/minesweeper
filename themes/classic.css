@@ -72,7 +72,7 @@
 }
 .minesweeper .cell:after {
   position: absolute;
-  top: -0.2em;
+  top: 0.1em;
   left: 0;
   right: 0;
   text-align: center;
@@ -82,25 +82,25 @@
   background: darkgrey;
   border-color: transparent;
 }
-.minesweeper .cell.flagged:before { content: "\2691"; }
+.minesweeper .cell.flagged:before { content: "\2691"; color: #990033; }
 .minesweeper .cell.cleared:not(.bomb):before { content: attr(data-count); }
 .minesweeper .cell.cleared:not(.bomb)[data-count="0"]:disabled:before { display: none; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="1"]:disabled { color: blue; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="2"]:disabled { color: green; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="3"]:disabled { color: red; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="4"]:disabled { color: navy; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="5"]:disabled { color: darkred; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="6"]:disabled { color: darkcyan; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="7"]:disabled { color: black; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="8"]:disabled { color: grey; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="1"]:disabled { color: #0000FF; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="2"]:disabled { color: #008000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="3"]:disabled { color: #CC0000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="4"]:disabled { color: #000080; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="5"]:disabled { color: #800000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="6"]:disabled { color: #008080; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="7"]:disabled { color: #000000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="8"]:disabled { color: #808080; }
 
 .minesweeper .cell.cleared,
 .minesweeper.over .cell.bomb,
 .minesweeper.over .cell.flagged:not(.bomb) {
   border-top: 1px solid grey;
   border-left: 1px solid grey;
-  border-right: 1px solid transparent;
-  border-bottom: 1px solid transparent;
+  border-right: none;
+  border-bottom: none;
 }
 
 .minesweeper.over .cell.flagged:not(.bomb):before {
@@ -109,7 +109,6 @@
 .minesweeper.over .cell.flagged:not(.bomb):after {
   content: "\2715";
   color: red;
-  line-height: 1.5;
   text-shadow: 0 0 2px white;
 }
 .minesweeper.over .cell.flagged:not(.bomb):before,

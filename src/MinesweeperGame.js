@@ -30,9 +30,9 @@ class MinesweeperGame extends EventTarget {
   cell(id) {
     const cellData = this.cellData.get(id);
     if (cellData.cleared || this.success || this.failure) {
-      return { position: cellData.position, cleared: cellData.cleared, flagged: cellData.flagged, bomb: cellData.bomb, count: cellData.count };
+      return { cleared: cellData.cleared, flagged: cellData.flagged, bomb: cellData.bomb, count: cellData.count };
     } else {
-      return { position: cellData.position, cleared: cellData.cleared, flagged: cellData.flagged };
+      return { cleared: cellData.cleared, flagged: cellData.flagged };
     }
   }
 
@@ -98,7 +98,7 @@ class MinesweeperGame extends EventTarget {
     if (cellData.bomb) {
       if (this.freeFirstPass && this.cleared === 0) {
         const changedIDs = this._addRandomBombs(1);
-        this._setBomb(position, false);
+        this._setBomb(id, false);
         this.dispatchEvent(new CustomEvent('cellchange', { detail: changedIDs[0] }));
       } else {
         cellData.cleared = true;

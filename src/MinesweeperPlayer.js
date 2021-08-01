@@ -1,68 +1,196 @@
+function aggregateInfo(game, ids) {
+  let flagged = 0;
+  const unknownIDs = [];
+  for (const id of ids) {
+    const ccell = game.cell(id);
+    if (ccell.flagged) {
+      ++flagged;
+    } else if (!ccell.cleared) {
+      unknownIDs.push(id);
+    }
+  }
+  return { flagged, unknownIDs };
+}
+
+function intersect(a, b) {
+  const r = [];
+  for (const v of a) {
+    if (b.includes(v)) {
+      r.push(v);
+    }
+  }
+  return r;
+}
+
+function combineP(a, b) {
+  if (a >= 1 || b >= 1) {
+    return 1;
+  }
+  if (a <= 0 || b <= 0) {
+    return 0;
+  }
+  const min = Math.min(a, b);
+  return min / (1 + min * 2 - a - b);
+}
+
+function *simpleMoves(game, id, state) {
+  const cell = game.cell(id);
+  if (!cell.cleared || cell.count === 0) {
+    return;
+  }
+  const connectedIDs = game.grid.connectedIDs(id);
+  const { flagged, unknownIDs } = aggregateInfo(game, connectedIDs);
+  if (unknownIDs.length === 0) {
+    return;
+  }
+
+  const doClear = (cell.count - flagged === 0);
+  const doFlag = (cell.count - flagged === unknownIDs.length);
+  if (doClear || doFlag) {
+    for (const cid of unknownIDs) {
+      if (doClear) {
+        yield({ action: 'clear', id: cid });
+      } else {
+        yield({ action: 'flag', id: cid });
+      }
+      state.changed = true;
+    }
+  }
+}
+
+function *multiMoves(game, id, state) {
+  const cell1 = game.cell(id);
+  if (!cell1.cleared || cell1.count === 0) {
+    return;
+  }
+  const connectedIDs1 = game.grid.connectedIDs(id);
+  const agg1 = aggregateInfo(game, connectedIDs1);
+  if (agg1.unknownIDs.length === 0) {
+    return;
+  }
+  const remaining1 = cell1.count - agg1.flagged;
+  for (const linkID of agg1.unknownIDs) {
+    for (const id2 of game.grid.connectedIDs(linkID)) {
+      if (id2 === id) {
+        continue;
+      }
+      const cell2 = game.cell(id2);
+      if (!cell2.cleared) {
+        continue;
+      }
+      const connectedIDs2 = game.grid.connectedIDs(id2);
+      const agg2 = aggregateInfo(game, connectedIDs2);
+      const commonUnknown = intersect(agg1.unknownIDs, agg2.unknownIDs);
+      const remaining2 = cell2.count - agg2.flagged;
+      const nonOverlap1 = agg1.unknownIDs.length - commonUnknown.length;
+      const nonOverlap2 = agg2.unknownIDs.length - commonUnknown.length;
+      const maxOverlap = Math.min(remaining1, remaining2, commonUnknown.length);
+      const minOverlap = Math.max(remaining1 - nonOverlap1, remaining2 - nonOverlap2, 0);
+      if (remaining1 - minOverlap === 0 && nonOverlap1 > 0) {
+        for (const cid of agg1.unknownIDs) {
+          if (!commonUnknown.includes(cid)) {
+            yield({ action: 'clear', id: cid });
+            state.changed = true;
+          }
+        }
+      } else if (remaining1 - maxOverlap === nonOverlap1 && nonOverlap1 > 0) {
+        for (const cid of agg1.unknownIDs) {
+          if (!commonUnknown.includes(cid)) {
+            yield({ action: 'flag', id: cid });
+            state.changed = true;
+          }
+        }
+      }
+      if (remaining2 - minOverlap === 0 && nonOverlap2 > 0) {
+        for (const cid of agg2.unknownIDs) {
+          if (!commonUnknown.includes(cid)) {
+            yield({ action: 'clear', id: cid });
+            state.changed = true;
+          }
+        }
+      } else if (remaining2 - maxOverlap === nonOverlap2 && nonOverlap2 > 0) {
+        for (const cid of agg2.unknownIDs) {
+          if (!commonUnknown.includes(cid)) {
+            yield({ action: 'flag', id: cid });
+            state.changed = true;
+          }
+        }
+      }
+      if (state.changed) {
+        return;
+      }
+    }
+  }
+}
+
+function *pickRandom(game) {
+  const probabilities = new Map();
+  const baseProbability = (game.bombs - game.flagged) / (game.grid.count - game.cleared);
+  for (const id of game.grid.idList()) {
+    const cell = game.cell(id);
+    if (!cell.cleared) {
+      probabilities.set(id, combineP(baseProbability, probabilities.get(id) ?? baseProbability));
+      continue;
+    }
+    if (cell.count === 0) {
+      continue;
+    }
+    const connectedIDs = game.grid.connectedIDs(id);
+    const { flagged, unknownIDs } = aggregateInfo(game, connectedIDs);
+    if (unknownIDs.length === 0) {
+      continue;
+    }
+    const p = (cell.count - flagged) / unknownIDs.length;
+    for (const cid of unknownIDs) {
+      probabilities.set(cid, combineP(p, probabilities.get(cid) ?? baseProbability));
+    }
+  }
+
+  let bestIDs = [];
+  let bestP = 1;
+  for (const [id, p] of probabilities.entries()) {
+    if (p <= bestP) {
+      if (p < bestP) {
+        bestIDs.length = 0;
+        bestP = p;
+      }
+      bestIDs.push(id);
+    }
+  }
+  if (!bestIDs.length) {
+    throw new Error('no available cells');
+  }
+  const bestID = bestIDs[Math.floor(Math.random() * bestIDs.length)];
+  yield({ action: 'clear', id: bestID });
+}
+
 class MinesweeperPlayer {
-  constructor() {}
+  constructor({ stopWhenUnsure = false } = {}) {
+    this.stopWhenUnsure = stopWhenUnsure;
+  }
 
   *play(game) {
     while (!game.success && !game.failure) {
-      const probabilities = new Map();
-      const baseProbability = (game.bombs - game.flagged) / (game.grid.count - game.cleared);
+      const state = { changed: false };
       for (const id of game.grid.idList()) {
-        const cell = game.cell(id);
-        if (cell.flagged) {
-          probabilities.set(id, Number.POSITIVE_INFINITY);
-        } else if (cell.cleared) {
-          probabilities.set(id, Number.NEGATIVE_INFINITY);
-        } else {
-          probabilities.set(id, baseProbability);
-        }
+        yield *simpleMoves(game, id, state);
       }
-      let acted = false;
+      if (state.changed) {
+        continue;
+      }
       for (const id of game.grid.idList()) {
-        const cell = game.cell(id);
-        if (cell.flagged || !cell.cleared || cell.count === 0) {
-          continue;
-        }
-        const connected = game.grid.connectedIDs(id).map((cid) => ({ id: cid, cell: game.cell(cid) }));
-        let nearbyFlagged = 0;
-        let nearbyCleared = 0;
-        for (const c of connected) {
-          if (c.cell.cleared) {
-            ++nearbyCleared;
-          } else if (c.cell.flagged) {
-            ++nearbyFlagged;
-          }
-        }
-        if (nearbyCleared + nearbyFlagged === connected.length) {
-          continue;
-        }
-        const connectedProbability = (cell.count - nearbyFlagged) / (connected.length - nearbyFlagged - nearbyCleared);
-        for (const c of connected) {
-          if (!c.cell.cleared && !c.cell.flagged) {
-            if (connectedProbability === 1) {
-              acted = true;
-              yield({ action: 'flag', id: c.id });
-            } else if (connectedProbability === 0) {
-              acted = true;
-              yield({ action: 'clear', id: c.id });
-            } else {
-              probabilities.set(c.id, connectedProbability);
-            }
-          }
+        yield *multiMoves(game, id, state);
+        if (state.changed) {
+          break;
         }
       }
-      if (!acted) {
-        let bestID = null;
-        let bestP = 1;
-        for (const [id, p] of probabilities.entries()) {
-          if (Number.isFinite(p) && p < bestP) {
-            bestID = id;
-            bestP = p;
-          }
-        }
-        if (bestID === null) {
-          throw new Error('no available cells');
-        }
-        yield({ action: 'clear', id: bestID });
+      if (state.changed) {
+        continue;
       }
+      if (this.stopWhenUnsure && game.cleared > 0) {
+        return;
+      }
+      yield *pickRandom(game);
     }
   }
 }

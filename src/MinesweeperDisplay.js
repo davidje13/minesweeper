@@ -109,7 +109,7 @@ class MinesweeperDisplay extends EventTarget {
     cell.classList.toggle('cleared', cellData.cleared);
     cell.disabled = this.over || cellData.cleared;
     cell.classList.toggle('bomb', Boolean(cellData.bomb));
-    cell.dataset.count = cellData.count;
+    cell.dataset.count = cellData.count ?? '';
   }
 
   updateGameState() {
