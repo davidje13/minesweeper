@@ -37,11 +37,9 @@ class MinesweeperGame extends EventTarget {
   }
 
   _addRandomBombs(count) {
-    const ids = this.pickRandomFreeIDs(count);
-    for (const id of ids) {
+    for (const id of this.pickRandomFreeIDs(count)) {
       this._setBomb(id, true);
     }
-    return ids;
   }
 
   pickRandomFreeIDs(count) {
@@ -97,9 +95,8 @@ class MinesweeperGame extends EventTarget {
     }
     if (cellData.bomb) {
       if (this.freeFirstPass && this.cleared === 0) {
-        const changedIDs = this._addRandomBombs(1);
+        this._addRandomBombs(1);
         this._setBomb(id, false);
-        this.dispatchEvent(new CustomEvent('cellchange', { detail: changedIDs[0] }));
       } else {
         cellData.cleared = true;
         this.failure = true;
