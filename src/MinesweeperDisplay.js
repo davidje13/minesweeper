@@ -63,6 +63,7 @@ class MinesweeperDisplay extends EventTarget {
     }
     this.game = game;
     if (!game) {
+      this.rebuildGrid(null);
       return;
     }
 
@@ -79,6 +80,12 @@ class MinesweeperDisplay extends EventTarget {
   rebuildGrid(grid) {
     this.minefield.innerText = '';
     this.cells.clear();
+    this.base.classList.remove('picking');
+    window.removeEventListener('mouseup', this.cellMouseUp);
+    this.clickBegin = null;
+    if (!grid) {
+      return;
+    }
     grid.idGrid().forEach((row, y) => row.forEach((id, x) => {
       const cell = document.createElement('button');
       cell.className = 'cell';
@@ -87,9 +94,6 @@ class MinesweeperDisplay extends EventTarget {
       this.minefield.appendChild(cell);
       this.cells.set(id, cell);
     }));
-    this.base.classList.remove('picking');
-    window.removeEventListener('mouseup', this.cellMouseUp);
-    this.clickBegin = null;
   }
 
   updateAllCells(onlyNonCleared) {
@@ -167,11 +171,10 @@ class MinesweeperDisplay extends EventTarget {
     }
     this.base.classList.remove('picking');
     window.removeEventListener('mouseup', this.cellMouseUp);
-    if (e.target === this.clickBegin) {
-      return; // click will be caught by click handler
+    if (e.target !== this.clickBegin) {
+      this.cellClick(e);
     }
     this.clickBegin = null;
-    this.cellClick(e);
   }
 
   cellContext(e) {

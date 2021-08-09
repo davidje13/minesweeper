@@ -2,6 +2,21 @@ function random(max) {
   return Math.floor(Math.random() * max);
 }
 
+function pickRandomIndices(total, count, rng) {
+  const indices = [];
+  let space = total;
+  for (let i = 0; i < count; ++i) {
+    const v = rng(space);
+    let n = 0;
+    while (n < indices.length && v + n >= indices[n]) {
+      ++n;
+    }
+    indices.splice(n, 0, v + n);
+    --space;
+  }
+  return indices;
+}
+
 class MinesweeperGame extends EventTarget {
   constructor(grid, bombs, { rng = random, freeFirstPass = true } = {}) {
     super();
@@ -37,28 +52,24 @@ class MinesweeperGame extends EventTarget {
   }
 
   _addRandomBombs(count) {
-    for (const id of this.pickRandomFreeIDs(count)) {
+    for (const id of this.pickRandomIDs((id) => !this.cellData.get(id).bomb, count)) {
       this._setBomb(id, true);
     }
   }
 
-  pickRandomFreeIDs(count) {
-    const indices = [];
-    let space = this.grid.count - this.bombs;
-    for (let i = 0; i < count; ++i) {
-      const v = this.rng(space);
-      let n = 0;
-      while (n < indices.length && v + n >= indices[n]) {
-        ++n;
+  pickRandomIDs(predicate, count) {
+    let space = 0;
+    for (const id of this.grid.idList()) {
+      if (predicate(id)) {
+        ++space;
       }
-      indices.splice(n, 0, v + n);
-      --space;
     }
+    const indices = pickRandomIndices(space, count, this.rng);
     let p = 0;
     let n = 0;
     const resultIDs = [];
     for (const id of this.grid.idList()) {
-      if (!this.cellData.get(id).bomb) {
+      if (predicate(id)) {
         if (p === indices[n]) {
           resultIDs.push(id);
           ++n;
