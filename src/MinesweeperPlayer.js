@@ -123,6 +123,21 @@ function *multiMoves(game, id, state) {
   }
 }
 
+function *pickSafeRandom(game, state) {
+  const safeIDs = game.pickRandomIDs((id) => {
+    const cell = game.cell(id);
+    if (cell.cleared || cell.flagged) {
+      return false;
+    }
+    const connectedIDs = game.grid.connectedIDs(id);
+    return connectedIDs.every((cid) => !game.cell(cid).cleared);
+  }, 1);
+  if (safeIDs.length === 1) {
+    yield({ action: 'clear', id: safeIDs[0] });
+    state.changed = true;
+  }
+}
+
 function *pickRandom(game) {
   const probabilities = new Map();
   const baseProbability = (game.bombs - game.flagged) / (game.grid.count - game.cleared);
@@ -187,7 +202,13 @@ class MinesweeperPlayer {
       if (state.changed) {
         continue;
       }
-      if (this.stopWhenUnsure && game.cleared >= game.freePasses) {
+      if (game.cleared < game.freePasses) {
+        yield *pickSafeRandom(game, state);
+      }
+      if (state.changed) {
+        continue;
+      }
+      if (this.stopWhenUnsure) {
         return;
       }
       yield *pickRandom(game);
