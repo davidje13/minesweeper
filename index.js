@@ -18,7 +18,7 @@ window.addEventListener('DOMContentLoaded', () => {
   let game = null;
 
   function begin() {
-    game = new MinesweeperGame(grid, 300);
+    game = new MinesweeperGame(grid, 300, { freePasses: 5 });
     display.display(game);
   }
 

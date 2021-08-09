@@ -18,7 +18,7 @@ function pickRandomIndices(total, count, rng) {
 }
 
 class MinesweeperGame extends EventTarget {
-  constructor(grid, bombs, { rng = random, freeFirstPass = true } = {}) {
+  constructor(grid, bombs, { rng = random, freePasses = 1 } = {}) {
     super();
 
     if (bombs !== Math.round(bombs) || bombs <= 0) {
@@ -26,7 +26,7 @@ class MinesweeperGame extends EventTarget {
     }
 
     this.grid = grid;
-    this.freeFirstPass = freeFirstPass;
+    this.freePasses = freePasses;
     this.rng = rng;
 
     this.flagged = 0;
@@ -39,6 +39,8 @@ class MinesweeperGame extends EventTarget {
     for (const id of grid.idList()) {
       this.cellData.set(id, { cleared: false, flagged: false, bomb: false, count: 0 });
     }
+    const isNotCleared = (id) => !this.cellData.get(id).cleared;
+    this._isNotNearCleared = (id) => this.grid.connectedIDs(id).every(isNotCleared);
     this._addRandomBombs(Math.min(bombs, grid.count));
   }
 
@@ -52,9 +54,26 @@ class MinesweeperGame extends EventTarget {
   }
 
   _addRandomBombs(count) {
-    for (const id of this.pickRandomIDs((id) => !this.cellData.get(id).bomb, count)) {
+    const ids = this.pickRandomIDs((id) => !this.cellData.get(id).bomb, count);
+    if (ids.length !== count) {
+      throw new Error('failed to pick random locations');
+    }
+    for (const id of ids) {
       this._setBomb(id, true);
     }
+  }
+
+  _moveBomb(id) {
+    const ids = this.pickRandomIDs((id) => {
+      const cellData = this.cellData.get(id);
+      return (!cellData.bomb && !cellData.cleared && this._isNotNearCleared(id));
+    }, 1);
+    if (ids.length !== 1) {
+      return false;
+    }
+    this._setBomb(ids[0], true);
+    this._setBomb(id, false);
+    return true;
   }
 
   pickRandomIDs(predicate, count) {
@@ -63,6 +82,9 @@ class MinesweeperGame extends EventTarget {
       if (predicate(id)) {
         ++space;
       }
+    }
+    if (space < count) {
+      return [];
     }
     const indices = pickRandomIndices(space, count, this.rng);
     let p = 0;
@@ -79,9 +101,6 @@ class MinesweeperGame extends EventTarget {
         }
         ++p;
       }
-    }
-    if (resultIDs.length !== count) {
-      throw new Error('failed to pick random locations');
     }
     return resultIDs;
   }
@@ -105,16 +124,16 @@ class MinesweeperGame extends EventTarget {
       return;
     }
     if (cellData.bomb) {
-      if (this.freeFirstPass && this.cleared === 0) {
-        this._addRandomBombs(1);
-        this._setBomb(id, false);
-      } else {
-        cellData.cleared = true;
-        this.failure = true;
-        this.dispatchEvent(new CustomEvent('cellchange', { detail: id }));
-        this.dispatchEvent(new Event('change'));
-        return;
+      if (this.cleared < this.freePasses && this._isNotNearCleared(id)) {
+        this._moveBomb(id);
       }
+    }
+    if (cellData.bomb) {
+      cellData.cleared = true;
+      this.failure = true;
+      this.dispatchEvent(new CustomEvent('cellchange', { detail: id }));
+      this.dispatchEvent(new Event('change'));
+      return;
     }
 
     cellData.cleared = true;

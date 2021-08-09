@@ -187,7 +187,7 @@ class MinesweeperPlayer {
       if (state.changed) {
         continue;
       }
-      if (this.stopWhenUnsure && game.cleared > 0) {
+      if (this.stopWhenUnsure && game.cleared >= game.freePasses) {
         return;
       }
       yield *pickRandom(game);
