@@ -82,7 +82,9 @@
   background: darkgrey;
   border-color: transparent;
 }
+.minesweeper.over.success .cell.bomb:before,
 .minesweeper .cell.flagged:before { content: "\2691"; color: #990033; }
+.minesweeper.over.success .cell.bomb:not(.flagged):before { opacity: 0.3; }
 .minesweeper .cell.cleared:not(.bomb):before { content: attr(data-count); }
 .minesweeper .cell.cleared:not(.bomb)[data-count="0"]:disabled:before { display: none; }
 .minesweeper .cell.cleared:not(.bomb)[data-count="1"]:disabled { color: #0000FF; }
@@ -95,7 +97,7 @@
 .minesweeper .cell.cleared:not(.bomb)[data-count="8"]:disabled { color: #808080; }
 
 .minesweeper .cell.cleared,
-.minesweeper.over .cell.bomb,
+.minesweeper.over.failure .cell.bomb:not(.flagged),
 .minesweeper.over .cell.flagged:not(.bomb) {
   border-top: 1px solid grey;
   border-left: 1px solid grey;
@@ -112,9 +114,10 @@
   text-shadow: 0 0 2px white;
 }
 .minesweeper.over .cell.flagged:not(.bomb):before,
-.minesweeper.over .cell.bomb:before {
+.minesweeper.over.failure .cell.bomb:not(.flagged):before {
   content: "\1F4A3";
   line-height: 1.4;
+  padding-left: 1px;
 }
 .minesweeper.over .cell.bomb.cleared { background: red; }
 .minesweeper.over .cell.bomb.cleared:after {
