@@ -1,0 +1,249 @@
+.window {
+  padding: 6px;
+  border-radius: 8px;
+  background: linear-gradient(175deg, #0088FF99, #FFFFFFBB 30%, #3388EE99 31%, #66BBFF99);
+  backdrop-filter: blur(4px);
+  box-shadow: inset 0 0 1px 1px #FFFFFF80, 0 0 1px black, 0 2px 15px #000000CC;
+}
+
+dialog.window::backdrop {
+  background: #00000066;
+}
+
+.window>h1 {
+  display: inline-block;
+  margin: 0;
+  padding: 2px 6px 7px 2px;
+  font: 1em sans-serif;
+  text-shadow: 0 0 2px white, 0 0 4px white;
+  position: relative;
+}
+.window>h1::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0.25em;
+  z-index: -1;
+  background: white;
+  border-radius: 100px;
+  filter: blur(4px);
+  opacity: 0.5;
+}
+.window>menu {
+  background: #DDDDDD99;
+  padding: 2px;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+.window>menu button {
+  padding: 4px 6px;
+}
+.window>menu button:hover,
+.window>menu button:active {
+  background: #FFFFFF80;
+}
+
+.window>:not(h1):not(menu) {
+  display: block;
+  box-shadow: 0 0 1px 1px #FFFFFF80, inset 0 0 0 1px #000000AA;
+  border-radius: 0.5px;
+  background: #EEEEEE;
+}
+
+
+#settings form {
+  padding: 15px;
+  font: 0.8em sans-serif;
+}
+
+#settings fieldset {
+  border-radius: 5px;
+  border: 1px solid #CCDDEE;
+  box-shadow: inset 0 0 0 1px white;
+  padding: 15px 20px;
+  margin: 2px 0 15px;
+}
+
+#settings fieldset legend {
+  background: #EEEEEE;
+}
+
+#settings fieldset > section {
+  gap: 10px 50px;
+}
+
+#settings fieldset input[type="radio"] {
+  margin-right: 10px;
+}
+
+#settings input[type="number"] {
+  width: 5em;
+}
+
+#settings button {
+  padding: 6px 10px;
+  border-radius: 3px;
+  box-shadow:
+    0 1px 1px #FFFFFF80,
+    inset 0 0 0 1px #808080,
+    inset 0 0 1px 2px #FFFFFF,
+    inset 0 0 2px #000000CC;
+  background: linear-gradient(#E8E8E8, #DDDDDD 45%, #CCCCCC 55%, #BBBBBB);
+}
+
+#settings button:focus, #settings button:hover {
+  background: linear-gradient(#EEEEEE, #E8E8E8 45%, #DDDDDD 55%, #CCCCCC);
+}
+
+#settings button:active {
+  padding: 7px 10px 5px;
+  box-shadow:
+    0 1px 1px #FFFFFF80,
+    inset 0 0 0 1px #808080,
+    inset 0 0 5px #00000011,
+    inset 0 0 2px #000000CC;
+  background: linear-gradient(#C8C8C8, #CCCCCC 45%, #D8D8D8 55%, #DDDDDD);
+}
+
+#settings menu {
+  justify-content: flex-end;
+}
+
+#settings menu button {
+  margin-left: 15px;
+}
+
+
+.minesweeper {
+  padding: 6px;
+}
+
+.minesweeper .hud {
+  border-top: 2px solid grey;
+  border-left: 2px solid grey;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  background: lightgrey;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.minesweeper .remaining { order: 1; }
+.minesweeper .score { order: 3; }
+.minesweeper .remaining,
+.minesweeper .score {
+  color: red;
+  font: bold 2rem monospace;
+  background: black;
+  width: 6rem;
+  text-align: center;
+}
+
+.minesweeper .reset {
+  order: 2;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.5rem;
+  border-top: 2px solid white;
+  border-left: 2px solid white;
+  border-right: 2px solid darkgrey;
+  border-bottom: 2px solid darkgrey;
+  box-shadow: 0 0 0 1px darkgrey;
+  line-height: 1.3;
+  text-align: center;
+}
+.minesweeper .reset:active {
+  background: darkgrey;
+  border-color: transparent;
+}
+.minesweeper .reset::before { content: "\1F642"; }
+.minesweeper.picking .reset::before { content: "\1F62F"; }
+.minesweeper.over.success .reset::before { content: "\1F60E"; }
+.minesweeper.over.failure .reset::before { content: "\1F480"; }
+
+.minesweeper .minefield {
+  grid-auto-columns: calc(1rem + 4px);
+  grid-auto-rows: calc(1rem + 4px);
+  border-top: 1px solid grey;
+  border-left: 1px solid grey;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  background: lightgrey;
+}
+
+.minesweeper .cell,
+.minesweeper .cell:disabled {
+  background: lightgrey;
+  border-top: 2px solid white;
+  border-left: 2px solid white;
+  border-right: 2px solid darkgrey;
+  border-bottom: 2px solid darkgrey;
+  font: 1rem sans-serif;
+  text-align: center;
+}
+.minesweeper .cell::after {
+  position: absolute;
+  top: 0.1em;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+.minesweeper:not(.picking) .cell:not(.flagged):active,
+.minesweeper.picking .cell:not(.flagged):hover {
+  background: darkgrey;
+  border-color: transparent;
+}
+.minesweeper.over.success .cell.bomb::before,
+.minesweeper .cell.flagged::before { content: "\2691"; color: #990033; }
+.minesweeper.over.success .cell.bomb:not(.flagged)::before { opacity: 0.3; }
+.minesweeper .cell.cleared:not(.bomb)::before { content: attr(data-count); }
+.minesweeper .cell.cleared:not(.bomb)[data-count="0"]:disabled::before { display: none; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="1"]:disabled { color: #0000FF; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="2"]:disabled { color: #008000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="3"]:disabled { color: #CC0000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="4"]:disabled { color: #000080; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="5"]:disabled { color: #800000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="6"]:disabled { color: #008080; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="7"]:disabled { color: #000000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="8"]:disabled { color: #808080; }
+
+.minesweeper .cell.cleared,
+.minesweeper.over.failure .cell.bomb:not(.flagged),
+.minesweeper.over .cell.flagged:not(.bomb) {
+  border-top: 1px solid grey;
+  border-left: 1px solid grey;
+  border-right: none;
+  border-bottom: none;
+}
+
+.minesweeper.over .cell.flagged:not(.bomb)::before {
+  opacity: 0.6;
+}
+.minesweeper.over .cell.flagged:not(.bomb)::after {
+  content: "\2715";
+  color: red;
+  text-shadow: 0 0 2px white;
+}
+.minesweeper.over .cell.flagged:not(.bomb)::before,
+.minesweeper.over.failure .cell.bomb:not(.flagged)::before {
+  content: "\1F4A3";
+  line-height: 1.4;
+  padding-left: 1px;
+}
+.minesweeper.over .cell.bomb.cleared { background: red; }
+.minesweeper.over .cell.bomb.cleared::after {
+  content: "\1F4A5";
+}
+
+.minesweeper:not(.over) .cell.bomb {
+  font-size: 0.5rem;
+}
+.minesweeper:not(.over) .cell.bomb::before {
+  content: "\1F4A3";
+  opacity: 0.3;
+}

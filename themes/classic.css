@@ -1,23 +1,116 @@
-.minesweeper {
-  border-top: 2px solid white;
-  border-left: 2px solid white;
-  border-right: 2px solid grey;
-  border-bottom: 2px solid grey;
-  background: lightgrey;
+.window {
+  border-top: 1px solid #C0C0C0;
+  border-left: 1px solid #C0C0C0;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #808080;
+  background: #C0C0C0;
+  padding: 2px;
+}
+
+dialog.window::backdrop {
+  background: #00000066;
+}
+
+.window>h1 {
+  padding: 1px;
+  font: bold 0.8em sans-serif;
+  color: #FFFFFF;
+  background: #0000FF;
+  margin-bottom: 1px;
+}
+#game.window>h1::before {
+  content: "";
+  display: inline-block;
+  vertical-align: top;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  background: transparent url(classic.png) -128px 0 no-repeat;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+.window>menu {
+  padding: 0 4px 2px;
+}
+.window>menu button {
+  padding: 4px;
+}
+.window>menu button:hover,
+.window>menu button:active {
+  background: #AAAAAA;
+}
+
+
+#settings form {
   padding: 10px;
+  font: 0.8em sans-serif;
+}
+
+#settings fieldset {
+  border: 2px groove white;
+  padding: 15px 20px;
+  margin: 2px 0 15px;
+}
+
+#settings fieldset > section {
+  gap: 10px 50px;
+}
+
+#settings fieldset input[type="radio"] {
+  margin-right: 10px;
+}
+
+#settings input[type="number"] {
+  width: 5em;
+}
+
+#settings button {
+  padding: 6px 10px;
+  border-top: 1px solid #C0C0C0;
+  border-left: 1px solid #C0C0C0;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #808080;
+  background: #C0C0C0;
+}
+
+#settings button:active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #C0C0C0;
+  border-bottom: 1px solid #C0C0C0;
+  box-shadow: inset -1px -1px #FFFFFF, inset 1px 1px #808080;
+  background: #C0C0C0;
+}
+
+#settings menu {
+  justify-content: flex-end;
+}
+
+#settings menu button {
+  margin-left: 10px;
+}
+
+
+.minesweeper {
+  border-top: 3px solid #FFFFFF;
+  border-left: 3px solid #FFFFFF;
+  border-right: 3px solid #808080;
+  border-bottom: 3px solid #808080;
+  padding: 5px 6px;
 }
 
 .minesweeper .hud {
-  border-top: 2px solid grey;
-  border-left: 2px solid grey;
-  border-right: 2px solid white;
-  border-bottom: 2px solid white;
-  background: lightgrey;
+  border-top: 3px solid #808080;
+  border-left: 3px solid #808080;
+  border-right: 3px solid #FFFFFF;
+  border-bottom: 3px solid #FFFFFF;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 3px 3px 4px;
+  margin-bottom: 5px;
 }
 
 .minesweeper .remaining { order: 1; }
@@ -29,105 +122,76 @@
   background: black;
   width: 6rem;
   text-align: center;
+  border-top: 1px solid #808080;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
 }
 
 .minesweeper .reset {
   order: 2;
-  width: 2rem;
-  height: 2rem;
-  font-size: 1.5rem;
-  border-top: 2px solid white;
-  border-left: 2px solid white;
-  border-right: 2px solid darkgrey;
-  border-bottom: 2px solid darkgrey;
-  box-shadow: 0 0 0 1px darkgrey;
-  line-height: 1.3;
+  width: 27px;
+  height: 27px;
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  background: #C0C0C0;
+  box-shadow: 0 0 0 1px #808080;
+  position: relative;
 }
 .minesweeper .reset:active {
-  background: darkgrey;
-  border-color: transparent;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+  background: #AAAAAA;
 }
-.minesweeper .reset:before { content: "\1F642"; }
-.minesweeper.picking .reset:before { content: "\1F62F"; }
-.minesweeper.over.success .reset:before { content: "\1F60E"; }
-.minesweeper.over.failure .reset:before { content: "\1F480"; }
+.minesweeper .reset::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 17px;
+  height: 17px;
+  background: transparent url(classic.png) 0 -32px no-repeat;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+.minesweeper.picking .reset::before { background-position: -17px -32px; }
+.minesweeper.over.success .reset::before { background-position: -51px -32px; }
+.minesweeper.over.failure .reset::before { background-position: -34px -32px; }
 
 .minesweeper .minefield {
-  grid-auto-columns: calc(1rem + 4px);
-  grid-auto-rows: calc(1rem + 4px);
-  border-top: 1px solid grey;
-  border-left: 1px solid grey;
-  border-right: 2px solid white;
-  border-bottom: 2px solid white;
-  background: lightgrey;
+  grid-auto-columns: 16px;
+  grid-auto-rows: 16px;
+  border-top: 3px solid #808080;
+  border-left: 3px solid #808080;
+  border-right: 3px solid #FFFFFF;
+  border-bottom: 3px solid #FFFFFF;
 }
 
-.minesweeper .cell, .minesweeper .cell:disabled {
-  background: lightgrey;
-  border-top: 2px solid white;
-  border-left: 2px solid white;
-  border-right: 2px solid darkgrey;
-  border-bottom: 2px solid darkgrey;
-  font: 1rem sans-serif;
-}
-.minesweeper .cell:after {
-  position: absolute;
-  top: 0.1em;
-  left: 0;
-  right: 0;
-  text-align: center;
+.minesweeper .cell {
+  background: transparent url(classic.png) 0 0 no-repeat;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
 }
 .minesweeper:not(.picking) .cell:not(.flagged):active,
-.minesweeper.picking .cell:not(.flagged):hover {
-  background: darkgrey;
-  border-color: transparent;
-}
-.minesweeper.over.success .cell.bomb:before,
-.minesweeper .cell.flagged:before { content: "\2691"; color: #990033; }
-.minesweeper.over.success .cell.bomb:not(.flagged):before { opacity: 0.3; }
-.minesweeper .cell.cleared:not(.bomb):before { content: attr(data-count); }
-.minesweeper .cell.cleared:not(.bomb)[data-count="0"]:disabled:before { display: none; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="1"]:disabled { color: #0000FF; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="2"]:disabled { color: #008000; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="3"]:disabled { color: #CC0000; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="4"]:disabled { color: #000080; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="5"]:disabled { color: #800000; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="6"]:disabled { color: #008080; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="7"]:disabled { color: #000000; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="8"]:disabled { color: #808080; }
+.minesweeper.picking .cell:not(.flagged):hover { background-position: -16px 0; }
+.minesweeper.over.success .cell.bomb,
+.minesweeper .cell.flagged { background-position: -32px 0; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="0"] { background-position: 0 -16px; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="1"] { background-position: -16px -16px; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="2"] { background-position: -32px -16px; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="3"] { background-position: -48px -16px; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="4"] { background-position: -64px -16px; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="5"] { background-position: -80px -16px; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="6"] { background-position: -96px -16px; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="7"] { background-position: -112px -16px; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="8"] { background-position: -128px -16px; }
 
-.minesweeper .cell.cleared,
-.minesweeper.over.failure .cell.bomb:not(.flagged),
-.minesweeper.over .cell.flagged:not(.bomb) {
-  border-top: 1px solid grey;
-  border-left: 1px solid grey;
-  border-right: none;
-  border-bottom: none;
-}
+.minesweeper.over.failure .cell.bomb:not(.flagged):not(.cleared) { background-position: -64px 0; }
+.minesweeper.over .cell.bomb.cleared { background-position: -80px 0; }
+.minesweeper.over .cell.flagged:not(.bomb) { background-position: -96px 0; }
 
-.minesweeper.over .cell.flagged:not(.bomb):before {
-  opacity: 0.6;
-}
-.minesweeper.over .cell.flagged:not(.bomb):after {
-  content: "\2715";
-  color: red;
-  text-shadow: 0 0 2px white;
-}
-.minesweeper.over .cell.flagged:not(.bomb):before,
-.minesweeper.over.failure .cell.bomb:not(.flagged):before {
-  content: "\1F4A3";
-  line-height: 1.4;
-  padding-left: 1px;
-}
-.minesweeper.over .cell.bomb.cleared { background: red; }
-.minesweeper.over .cell.bomb.cleared:after {
-  content: "\1F4A5";
-}
-
-.minesweeper:not(.over) .cell.bomb {
-  font-size: 0.5rem;
-}
-.minesweeper:not(.over) .cell.bomb:before {
-  content: "\1F4A3";
-  opacity: 0.3;
-}
+.minesweeper:not(.over) .cell.bomb { background-position: -112px 0; }

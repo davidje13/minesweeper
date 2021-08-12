@@ -1,0 +1,20 @@
+html, body, section, h1, div, form, fieldset, menu, button, :disabled {
+  margin: 0;
+  padding: 0;
+  border: none;
+  color: unset;
+  background: unset;
+  box-sizing: border-box;
+  list-style: none;
+  line-height: 1;
+  text-align: initial;
+}
+dialog {
+  padding: 0;
+  border: none;
+  background: unset;
+  box-sizing: border-box;
+  line-height: 1;
+  text-align: initial;
+}
+::before, ::after { line-height: 1; }

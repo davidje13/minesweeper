@@ -2,15 +2,54 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="index.css" />
-<link rel="stylesheet" href="themes/classic.css" />
-<script src="src/MinesweeperGrid.js"></script>
-<script src="src/MinesweeperDisplay.js"></script>
-<script src="src/MinesweeperGame.js"></script>
-<script src="src/MinesweeperPlayer.js"></script>
-<script src="index.js"></script>
+<link rel="stylesheet" href="src/reset.css" />
+<link rel="stylesheet" href="src/index.css" />
+<link rel="stylesheet" href="src/window.css" />
+<link rel="stylesheet" href="src/settings.css" />
+<link rel="stylesheet" href="src/minesweeper/minesweeper.css" />
+<link rel="stylesheet" id="theme" />
+<script src="src/minesweeper/MinesweeperGrid.js"></script>
+<script src="src/minesweeper/MinesweeperDisplay.js"></script>
+<script src="src/minesweeper/MinesweeperGame.js"></script>
+<script src="src/minesweeper/MinesweeperPlayer.js"></script>
+<script src="src/index.js"></script>
 <title>Minesweeper</title>
 </head>
 <body>
+  <section id="game" class="window">
+    <h1>Minesweeper</h1>
+    <menu><button id="openSettings">Settings</button></menu>
+  </section>
+  <dialog id="settings" class="window">
+    <h1>Options</h1>
+    <form>
+      <fieldset>
+        <legend>Difficulty</legend>
+        <section>
+          <label><input type="radio" name="difficulty" value="9,9,10" /><span>Beginner<br>10 mines<br>9 &times; 9 tile grid</span></label>
+          <label><input type="radio" name="difficulty" value="16,16,40" /><span>Intermediate<br>40 mines<br>16 &times; 16 tile grid</span></label>
+          <label><input type="radio" name="difficulty" value="30,16,99" /><span>Advanced<br>99 mines<br>30 &times; 16 tile grid</span></label>
+          <label><input type="radio" name="difficulty" value="50,30,300" /><span>Extra Advanced<br>300 mines<br>50 &times; 30 tile grid</span></label>
+          <section class="custom">
+            <label><input type="radio" name="difficulty" value="" /><span>Custom</span></label>
+            <label><span>Width</span><input name="width" type="number" min="5" max="50" /></label>
+            <label><span>Height</span><input name="height" type="number" min="5" max="50" /></label>
+            <label><span>Bombs</span><input name="bombs" type="number" min="1" max="999" /></label>
+          </section>
+        </section>
+      </fieldset>
+      <fieldset>
+        <legend>Theme</legend>
+        <section>
+          <label><input type="radio" name="theme" value="classic" /><span>Classic</span></label>
+          <label><input type="radio" name="theme" value="modern" /><span>Modern</span></label>
+        </section>
+      </fieldset>
+      <menu>
+        <button type="button" id="settings-cancel">Cancel</button>
+        <button type="submit">OK</button>
+      </menu>
+    </form>
+  </dialog>
 </body>
 </html>

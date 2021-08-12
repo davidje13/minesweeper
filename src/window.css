@@ -1,0 +1,4 @@
+.window:not(dialog) {
+  display: inline-block;
+  vertical-align: top;
+}

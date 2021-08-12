@@ -142,7 +142,8 @@ class MinesweeperDisplay extends EventTarget {
     this.dispatchEvent(new Event('reset'));
   }
 
-  secretAutoplay() {
+  secretAutoplay(e) {
+    e.preventDefault();
     this.dispatchEvent(new Event('secret-autoplay'));
   }
 

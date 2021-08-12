@@ -1,0 +1,4 @@
+.minesweeper :disabled { pointer-events: none; }
+.minesweeper { display: inline-block; }
+.minesweeper .minefield { display: grid; }
+.minesweeper .cell { position: relative; }
