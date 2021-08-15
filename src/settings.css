@@ -1,25 +1,19 @@
 #settings fieldset > section {
   display: grid;
-  grid-auto-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
 }
 
-#settings fieldset label {
+#settings .presets {
+  display: grid;
+}
+
+#settings label {
   display: flex;
   align-items: center;
 }
 
-#settings .custom {
-  grid-area: 1 / 2 / 5 / 2;
-}
-
-#settings .custom label:not(:first-child) {
-  display: block;
-  margin: 5px 0 0 30px;
-}
-
-#settings .custom label:not(:first-child) span {
-  display: inline-block;
-  min-width: 5em;
+#settings .custom-detail label {
+  justify-content: space-between;
 }
 
 #settings menu {

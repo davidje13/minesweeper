@@ -1,3 +1,14 @@
+const THEMES = [
+  { theme: 'classic', name: 'Classic' },
+  { theme: 'modern', name: 'Modern' },
+];
+const DIFFICULTIES = [
+  { cols: 9, rows: 9, bombs: 10, name: 'Beginner' },
+  { cols: 16, rows: 16, bombs: 40, name: 'Intermediate' },
+  { cols: 30, rows: 16, bombs: 99, name: 'Advanced' },
+  { cols: 50, rows: 30, bombs: 300, name: 'Extra Advanced' },
+];
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function playSlow(game, player, moveDelay, checkActive) {
@@ -13,80 +24,45 @@ async function playSlow(game, player, moveDelay, checkActive) {
   }
 }
 
-function selectRadio(form, name, value) {
-  let any = false;
-  form.querySelectorAll(`input[name="${name}"]`).forEach((e) => {
-    const match = (e.value === value);
-    e.checked = match;
-    any = any || match;
-  });
-  return any;
-}
-
-function getRadio(form, name) {
-  return form.querySelector(`input[name="${name}"]:checked`)?.value;
-}
-
 window.addEventListener('DOMContentLoaded', () => {
-  const themeCss = document.getElementById('theme');
-  let theme = 'classic';
-  themeCss.setAttribute('href', `themes/${theme}.css`);
-
-  let grid = new MinesweeperGrid(50, 30);
-  let bombs = 300;
+  let grid = null;
+  let curBombs = 0;
+  let curTheme = null;
   const player = new MinesweeperPlayer({ stopWhenUnsure: true });
   const display = new MinesweeperDisplay();
-  const settingsForm = document.getElementById('settings').getElementsByTagName('form')[0];
-  document.getElementById('game').appendChild(display.base);
-  document.getElementById('openSettings').addEventListener('click', () => {
-    selectRadio(settingsForm, 'theme', theme);
-    if (!selectRadio(settingsForm, 'difficulty', `${grid.cols},${grid.rows},${bombs}`)) {
-      selectRadio(settingsForm, 'difficulty', '');
+  const settings = new Settings(document.getElementById('settings'), THEMES, DIFFICULTIES);
+
+  function updateConfig({ theme, cols, rows, bombs }) {
+    if (curTheme !== theme) {
+      curTheme = theme;
+      document.getElementById('theme').setAttribute('href', `themes/${theme}.css`);
     }
-    settingsForm.elements['width'].value = grid.cols;
-    settingsForm.elements['height'].value = grid.rows;
-    settingsForm.elements['bombs'].value = bombs;
-    document.getElementById('settings').showModal();
-  });
-  document.getElementById('settings-cancel').addEventListener('click', (e) => {
-    e.preventDefault();
-    document.getElementById('settings').close();
-  });
-  settingsForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    document.getElementById('settings').close();
-    const newTheme = getRadio(settingsForm, 'theme');
-    if (newTheme && newTheme !== theme) {
-      theme = newTheme;
-      themeCss.setAttribute('href', `themes/${theme}.css`);
-    }
-    const newDifficulty = getRadio(settingsForm, 'difficulty');
-    let newOpts;
-    if (newDifficulty) {
-      const [w, h, b] = newDifficulty.split(',');
-      newOpts = {
-        w: Math.round(Number(w)),
-        h: Math.round(Number(h)),
-        b: Math.round(Number(b)),
-      };
-    } else {
-      newOpts = {
-        w: Math.round(Number(settingsForm.elements['width'].value)),
-        h: Math.round(Number(settingsForm.elements['height'].value)),
-        b: Math.round(Number(settingsForm.elements['bombs'].value)),
-      };
-    }
-    if (grid.cols !== newOpts.w || grid.rows !== newOpts.h || bombs !== newOpts.b) {
-      grid = new MinesweeperGrid(newOpts.w, newOpts.h);
-      bombs = newOpts.b;
+    if (!grid || grid.cols !== cols || grid.rows !== rows || curBombs !== bombs) {
+      grid = new MinesweeperGrid(cols, rows);
+      curBombs = bombs;
       begin();
     }
+  }
+
+  document.getElementById('game').appendChild(display.base);
+  document.getElementById('openSettings').addEventListener('click', () => {
+    settings.showModal({
+      theme: curTheme,
+      cols: grid.cols,
+      rows: grid.rows,
+      bombs: curBombs,
+    });
+  });
+  settings.addEventListener('cancel', () => settings.close());
+  settings.addEventListener('submit', (e) => {
+    settings.close();
+    updateConfig(e.detail);
   });
   let game = null;
   let playing = null;
 
   function begin() {
-    game = new MinesweeperGame(grid, bombs, { freePasses: 5 });
+    game = new MinesweeperGame(grid, curBombs, { freePasses: 5 });
     display.display(game);
     playing = null;
   }
@@ -102,5 +78,9 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
-  begin();
+
+  updateConfig({
+    ...THEMES[1],
+    ...DIFFICULTIES[2],
+  });
 });

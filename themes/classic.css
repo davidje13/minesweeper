@@ -45,6 +45,7 @@ dialog.window::backdrop {
 #settings form {
   padding: 10px;
   font: 0.8em sans-serif;
+  line-height: 1.2;
 }
 
 #settings fieldset {
@@ -53,15 +54,25 @@ dialog.window::backdrop {
   margin: 2px 0 15px;
 }
 
-#settings fieldset > section {
-  gap: 10px 50px;
+#settings fieldset > section,
+#settings fieldset .presets {
+  gap: 10px 30px;
 }
 
 #settings fieldset input[type="radio"] {
   margin-right: 10px;
 }
 
-#settings input[type="number"] {
+#settings .custom-detail {
+  margin: 10px 0 0 30px;
+}
+
+#settings .custom-detail label {
+  margin-top: 5px;
+}
+
+#settings .custom-detail input {
+  margin-left: 10px;
   width: 5em;
 }
 
