@@ -13,13 +13,128 @@ function aggregateInfo(game, ids) {
 }
 
 function intersect(a, b) {
+  return a.filter((v) => b.includes(v));
+}
+
+function exclude(a, b) {
+  return a.filter((v) => !b.includes(v));
+}
+
+function createConnectedRegion(game, id) {
+  const cell = game.cell(id);
+  if (!cell.cleared || cell.count === 0) {
+    return null;
+  }
+  const agg = aggregateInfo(game, game.grid.connectedIDs(id));
+  if (!agg.unknownIDs.length) {
+    return null;
+  }
+  const remaining = cell.count - agg.flagged;
+  return { sources: [id], cellIDs: agg.unknownIDs, min: remaining, max: remaining };
+}
+
+function isSubregionUseful(subRegion, region) {
+  const cellCount = region.cellIDs.length;
+  const subCellCount = subRegion.cellIDs.length;
+  return (
+    subRegion.min > Math.max(0, region.min - (cellCount - subCellCount)) ||
+    subRegion.max < Math.min(subCellCount, region.max)
+  );
+}
+
+function combineRegions(a, b) {
+  if (a === b || a.sources.some((s) => b.sources.includes(s))) {
+    return [];
+  }
+  const common = intersect(a.cellIDs, b.cellIDs);
+  if (!common.length) {
+    return [];
+  }
+
+  const commonMax = Math.min(common.length, a.max, b.max);
+  const commonMin = Math.max(0, a.min - (a.cellIDs.length - common.length), b.min - (b.cellIDs.length - common.length));
+
   const r = [];
-  for (const v of a) {
-    if (b.includes(v)) {
-      r.push(v);
+  const sources = [...a.sources, ...b.sources];
+
+  if (common.length < a.cellIDs.length) {
+    const anotb = exclude(a.cellIDs, common);
+    const anotbRegion = {
+      sources,
+      cellIDs: anotb,
+      min: Math.max(0, a.min - commonMax),
+      max: Math.min(anotb.length, a.max - commonMin),
+    };
+    if (isSubregionUseful(anotbRegion, a)) {
+      r.push(anotbRegion);
     }
   }
+
+  if (common.length < b.cellIDs.length) {
+    const bnota = exclude(b.cellIDs, common);
+    const bnotaRegion = {
+      sources,
+      cellIDs: bnota,
+      min: Math.max(0, b.min - commonMax),
+      max: Math.min(bnota.length, b.max - commonMin),
+    };
+    if (isSubregionUseful(bnotaRegion, b)) {
+      r.push(bnotaRegion);
+    }
+  }
+
   return r;
+}
+
+function *applyRegion(game, region, state) {
+  if (region.max === 0) {
+    for (const id of region.cellIDs) {
+      if (!game.cell(id).cleared) {
+        yield({ action: 'clear', id });
+      }
+    }
+    state.changed = true;
+  } else if (region.min === region.cellIDs.length) {
+    for (const id of region.cellIDs) {
+      if (!game.cell(id).flagged) {
+        yield({ action: 'flag', id });
+      }
+    }
+    state.changed = true;
+  }
+}
+
+function isEqualSorted(a, b) {
+  for (let i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function deduplicateRegions(regions) {
+  regions.sort((a, b) => (a.max - b.max) || (a.min - b.min) || (a.cellIDs.length - b.cellIDs.length));
+  let prev = regions[0];
+  const r = [prev];
+  for (let i = 1; i < regions.length; ++i) {
+    const cur = regions[i];
+    if (cur.max === prev.max && cur.min === prev.min && cur.cellIDs.length === prev.cellIDs.length) {
+      prev.cellIDs.sort((a, b) => (a - b));
+      cur.cellIDs.sort((a, b) => (a - b));
+      if (isEqualSorted(cur.cellIDs, prev.cellIDs)) {
+        for (const source of cur.sources) {
+          if (!prev.sources.includes(source)) {
+            prev.sources.push(source);
+          }
+        }
+        continue;
+      }
+    }
+    r.push(cur);
+    prev = cur;
+  }
+  return regions;
 }
 
 function combineP(a, b) {
@@ -33,93 +148,27 @@ function combineP(a, b) {
   return min / (1 + min * 2 - a - b);
 }
 
-function *simpleMoves(game, id, state) {
-  const cell = game.cell(id);
-  if (!cell.cleared || cell.count === 0) {
-    return;
-  }
-  const connectedIDs = game.grid.connectedIDs(id);
-  const { flagged, unknownIDs } = aggregateInfo(game, connectedIDs);
-  if (unknownIDs.length === 0) {
-    return;
-  }
+function *findNextMoves(game, state) {
+  const regions = game.grid.idList
+    .map((id) => createConnectedRegion(game, id))
+    .filter((r) => r);
 
-  const doClear = (cell.count - flagged === 0);
-  const doFlag = (cell.count - flagged === unknownIDs.length);
-  if (doClear || doFlag) {
-    for (const cid of unknownIDs) {
-      if (doClear) {
-        yield({ action: 'clear', id: cid });
-      } else {
-        yield({ action: 'flag', id: cid });
-      }
-      state.changed = true;
+  let curRegions = regions;
+  let depth = 0;
+  while (curRegions.length) {
+    for (const region of curRegions) {
+      yield *applyRegion(game, region, state);
     }
-  }
-}
-
-function *multiMoves(game, id, state) {
-  const cell1 = game.cell(id);
-  if (!cell1.cleared || cell1.count === 0) {
-    return;
-  }
-  const connectedIDs1 = game.grid.connectedIDs(id);
-  const agg1 = aggregateInfo(game, connectedIDs1);
-  if (agg1.unknownIDs.length === 0) {
-    return;
-  }
-  const remaining1 = cell1.count - agg1.flagged;
-  for (const linkID of agg1.unknownIDs) {
-    for (const id2 of game.grid.connectedIDs(linkID)) {
-      if (id2 === id) {
-        continue;
-      }
-      const cell2 = game.cell(id2);
-      if (!cell2.cleared) {
-        continue;
-      }
-      const connectedIDs2 = game.grid.connectedIDs(id2);
-      const agg2 = aggregateInfo(game, connectedIDs2);
-      const commonUnknown = intersect(agg1.unknownIDs, agg2.unknownIDs);
-      const remaining2 = cell2.count - agg2.flagged;
-      const nonOverlap1 = agg1.unknownIDs.length - commonUnknown.length;
-      const nonOverlap2 = agg2.unknownIDs.length - commonUnknown.length;
-      const maxOverlap = Math.min(remaining1, remaining2, commonUnknown.length);
-      const minOverlap = Math.max(remaining1 - nonOverlap1, remaining2 - nonOverlap2, 0);
-      if (remaining1 - minOverlap === 0 && nonOverlap1 > 0) {
-        for (const cid of agg1.unknownIDs) {
-          if (!commonUnknown.includes(cid)) {
-            yield({ action: 'clear', id: cid });
-            state.changed = true;
-          }
-        }
-      } else if (remaining1 - maxOverlap === nonOverlap1 && nonOverlap1 > 0) {
-        for (const cid of agg1.unknownIDs) {
-          if (!commonUnknown.includes(cid)) {
-            yield({ action: 'flag', id: cid });
-            state.changed = true;
-          }
-        }
-      }
-      if (remaining2 - minOverlap === 0 && nonOverlap2 > 0) {
-        for (const cid of agg2.unknownIDs) {
-          if (!commonUnknown.includes(cid)) {
-            yield({ action: 'clear', id: cid });
-            state.changed = true;
-          }
-        }
-      } else if (remaining2 - maxOverlap === nonOverlap2 && nonOverlap2 > 0) {
-        for (const cid of agg2.unknownIDs) {
-          if (!commonUnknown.includes(cid)) {
-            yield({ action: 'flag', id: cid });
-            state.changed = true;
-          }
-        }
-      }
-      if (state.changed) {
-        return;
-      }
+    if (state.changed) {
+      return;
     }
+    if (curRegions.length * regions.length > 100_000 || depth > 20) {
+      break;
+    }
+    curRegions = curRegions
+      .flatMap((unionedRegion) => regions.flatMap((region) => combineRegions(unionedRegion, region)));
+    curRegions = deduplicateRegions(curRegions);
+    yield({ action: 'think', difficulty: depth });
   }
 }
 
@@ -178,21 +227,7 @@ class MinesweeperPlayer {
   *play(game) {
     while (!game.success && !game.failure) {
       const state = { changed: false };
-      for (const id of game.grid.idList) {
-        yield *simpleMoves(game, id, state);
-      }
-      for (const id of game.grid.specialIdList) {
-        yield *simpleMoves(game, id, state);
-      }
-      if (state.changed) {
-        continue;
-      }
-      for (const id of game.grid.idList) {
-        yield *multiMoves(game, id, state);
-        if (state.changed) {
-          break;
-        }
-      }
+      yield *findNextMoves(game, state);
       if (state.changed) {
         continue;
       }

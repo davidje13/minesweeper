@@ -18,11 +18,12 @@ class MinesweeperGrid {
     this.cols = cols;
     this.rows = rows;
     this.count = rows * cols;
-    this.idList = [];
+    this.visibleIdList = [];
     for (let id = 0; id < this.count; ++id) {
-      this.idList.push(id);
+      this.visibleIdList.push(id);
     }
     this.specialIdList = [-1]; // cell -1 has connectivity to all cells (= total bomb count)
+    this.idList = [...this.visibleIdList, ...this.specialIdList];
   }
 
   idGrid() {
@@ -40,7 +41,7 @@ class MinesweeperGrid {
   connectedIDs(id) {
     if (id < 0 || id >= this.count) {
       if (id === -1) {
-        return this.idList;
+        return this.visibleIdList;
       }
       throw new Error('invalid cell ID');
     }

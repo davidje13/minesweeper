@@ -44,7 +44,7 @@ class MinesweeperGame extends EventTarget {
       this.cellData.set(id, { cleared: false, flagged: false, bomb: false, count: 0 });
     }
     for (const id of grid.specialIdList) {
-      this.cellData.set(id, { cleared: true, flagged: false, bomb: false, count: 0 });
+      this.cellData.get(id).cleared = true;
     }
     this._addRandomBombs(Math.min(bombs, grid.count));
   }
@@ -59,7 +59,10 @@ class MinesweeperGame extends EventTarget {
   }
 
   _addRandomBombs(count) {
-    const ids = this.pickRandomIDs((id) => !this.cellData.get(id).bomb, count);
+    const ids = this.pickRandomIDs((id) => {
+      const cell = this.cellData.get(id);
+      return !cell.bomb && !cell.cleared;
+    }, count);
     if (ids.length !== count) {
       throw new Error('failed to pick random locations');
     }

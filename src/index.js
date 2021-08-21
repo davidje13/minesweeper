@@ -19,6 +19,7 @@ async function playSlow(game, player, moveDelay, checkActive) {
     switch (move.action) {
       case 'flag': game.toggleFlag(move.id); break;
       case 'clear': game.revealCell(move.id); break;
+      case 'think': break;
     }
     await sleep(moveDelay);
   }

@@ -109,11 +109,13 @@ class MinesweeperDisplay extends EventTarget {
     }
 
     const cell = this.cells.get(id);
-    cell.classList.toggle('flagged', cellData.flagged);
-    cell.classList.toggle('cleared', cellData.cleared);
-    cell.disabled = this.over || cellData.cleared;
-    cell.classList.toggle('bomb', Boolean(cellData.bomb));
-    cell.dataset.count = cellData.count ?? '';
+    if (cell) {
+      cell.classList.toggle('flagged', cellData.flagged);
+      cell.classList.toggle('cleared', cellData.cleared);
+      cell.disabled = this.over || cellData.cleared;
+      cell.classList.toggle('bomb', Boolean(cellData.bomb));
+      cell.dataset.count = cellData.count ?? '';
+    }
   }
 
   updateGameState() {
