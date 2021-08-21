@@ -97,7 +97,7 @@ class MinesweeperDisplay extends EventTarget {
   }
 
   updateAllCells(onlyNonCleared) {
-    for (const id of this.game.grid.idList()) {
+    for (const id of this.game.grid.idList) {
       this.updateCell(id, onlyNonCleared);
     }
   }

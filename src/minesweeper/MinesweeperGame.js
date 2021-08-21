@@ -17,6 +17,10 @@ function pickRandomIndices(total, count, rng) {
   return indices;
 }
 
+function hasSameElements(a, b) {
+  return a.length === b.length && a.every((v) => b.includes(v));
+}
+
 class MinesweeperGame extends EventTarget {
   constructor(grid, bombs, { rng = random, freePasses = 1 } = {}) {
     super();
@@ -36,11 +40,12 @@ class MinesweeperGame extends EventTarget {
     this.failure = false;
 
     this.cellData = new Map();
-    for (const id of grid.idList()) {
+    for (const id of grid.idList) {
       this.cellData.set(id, { cleared: false, flagged: false, bomb: false, count: 0 });
     }
-    const isNotCleared = (id) => !this.cellData.get(id).cleared;
-    this._isNotNearCleared = (id) => this.grid.connectedIDs(id).every(isNotCleared);
+    for (const id of grid.specialIdList) {
+      this.cellData.set(id, { cleared: true, flagged: false, bomb: false, count: 0 });
+    }
     this._addRandomBombs(Math.min(bombs, grid.count));
   }
 
@@ -63,22 +68,28 @@ class MinesweeperGame extends EventTarget {
     }
   }
 
-  _moveBomb(id) {
+  _tryMoveBomb(oldID) {
+    const isCleared = (id) => this.cellData.get(id).cleared;
+    const oldNearCleared = this.grid.connectedIDs(oldID).filter(isCleared);
     const ids = this.pickRandomIDs((id) => {
       const cellData = this.cellData.get(id);
-      return (!cellData.bomb && !cellData.cleared && this._isNotNearCleared(id));
+      if (cellData.bomb || cellData.cleared) {
+        return false;
+      }
+      const nearCleared = this.grid.connectedIDs(id).filter(isCleared);
+      return hasSameElements(oldNearCleared, nearCleared);
     }, 1);
     if (ids.length !== 1) {
       return false;
     }
     this._setBomb(ids[0], true);
-    this._setBomb(id, false);
+    this._setBomb(oldID, false);
     return true;
   }
 
   pickRandomIDs(predicate, count) {
     let space = 0;
-    for (const id of this.grid.idList()) {
+    for (const id of this.grid.idList) {
       if (predicate(id)) {
         ++space;
       }
@@ -90,7 +101,7 @@ class MinesweeperGame extends EventTarget {
     let p = 0;
     let n = 0;
     const resultIDs = [];
-    for (const id of this.grid.idList()) {
+    for (const id of this.grid.idList) {
       if (predicate(id)) {
         if (p === indices[n]) {
           resultIDs.push(id);
@@ -123,10 +134,8 @@ class MinesweeperGame extends EventTarget {
     if (cellData.cleared || cellData.flagged) {
       return;
     }
-    if (cellData.bomb) {
-      if (this.cleared < this.freePasses && this._isNotNearCleared(id)) {
-        this._moveBomb(id);
-      }
+    if (cellData.bomb && this.cleared < this.freePasses) {
+      this._tryMoveBomb(id);
     }
     if (cellData.bomb) {
       cellData.cleared = true;

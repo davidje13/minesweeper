@@ -123,42 +123,33 @@ function *multiMoves(game, id, state) {
   }
 }
 
-function *pickSafeRandom(game, state) {
-  const safeIDs = game.pickRandomIDs((id) => {
+function *pickRandom(game) {
+  const aggregates = new Map();
+  const getInfo = (id) => {
+    let v = aggregates.get(id);
+    if (!v) {
+      const cell = game.cell(id);
+      if (cell.cleared) {
+        v = { cleared: true, count: cell.count, ...aggregateInfo(game, game.grid.connectedIDs(id)) };
+      } else {
+        v = { cleared: false };
+      }
+      aggregates.set(id, v);
+    }
+    return v;
+  };
+  const probabilities = new Map();
+  for (const id of game.grid.idList) {
     const cell = game.cell(id);
     if (cell.cleared || cell.flagged) {
-      return false;
-    }
-    const connectedIDs = game.grid.connectedIDs(id);
-    return connectedIDs.every((cid) => !game.cell(cid).cleared);
-  }, 1);
-  if (safeIDs.length === 1) {
-    yield({ action: 'clear', id: safeIDs[0] });
-    state.changed = true;
-  }
-}
-
-function *pickRandom(game) {
-  const probabilities = new Map();
-  const baseProbability = (game.bombs - game.flagged) / (game.grid.count - game.cleared);
-  for (const id of game.grid.idList()) {
-    const cell = game.cell(id);
-    if (!cell.cleared) {
-      probabilities.set(id, combineP(baseProbability, probabilities.get(id) ?? baseProbability));
       continue;
     }
-    if (cell.count === 0) {
-      continue;
-    }
-    const connectedIDs = game.grid.connectedIDs(id);
-    const { flagged, unknownIDs } = aggregateInfo(game, connectedIDs);
-    if (unknownIDs.length === 0) {
-      continue;
-    }
-    const p = (cell.count - flagged) / unknownIDs.length;
-    for (const cid of unknownIDs) {
-      probabilities.set(cid, combineP(p, probabilities.get(cid) ?? baseProbability));
-    }
+    const probability = game.grid.connectedIDs(id)
+      .map(getInfo)
+      .filter((i) => i.cleared)
+      .map((i) => (i.count - i.flagged) / i.unknownIDs.length)
+      .reduce(combineP);
+    probabilities.set(id, probability);
   }
 
   let bestIDs = [];
@@ -187,13 +178,16 @@ class MinesweeperPlayer {
   *play(game) {
     while (!game.success && !game.failure) {
       const state = { changed: false };
-      for (const id of game.grid.idList()) {
+      for (const id of game.grid.idList) {
+        yield *simpleMoves(game, id, state);
+      }
+      for (const id of game.grid.specialIdList) {
         yield *simpleMoves(game, id, state);
       }
       if (state.changed) {
         continue;
       }
-      for (const id of game.grid.idList()) {
+      for (const id of game.grid.idList) {
         yield *multiMoves(game, id, state);
         if (state.changed) {
           break;
@@ -202,13 +196,7 @@ class MinesweeperPlayer {
       if (state.changed) {
         continue;
       }
-      if (game.cleared < game.freePasses) {
-        yield *pickSafeRandom(game, state);
-      }
-      if (state.changed) {
-        continue;
-      }
-      if (this.stopWhenUnsure) {
+      if (game.cleared >= game.freePasses && this.stopWhenUnsure) {
         return;
       }
       yield *pickRandom(game);
