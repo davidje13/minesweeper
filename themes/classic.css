@@ -169,6 +169,7 @@ dialog.window::backdrop {
   image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
+.minesweeper.autoplay .reset::before { background-position: -68px -32px; }
 .minesweeper.picking .reset::before { background-position: -17px -32px; }
 .minesweeper.over.success .reset::before { background-position: -51px -32px; }
 .minesweeper.over.failure .reset::before { background-position: -34px -32px; }

@@ -1,6 +1,7 @@
 const THEMES = [
   { theme: 'classic', name: 'Classic' },
   { theme: 'modern', name: 'Modern' },
+  { theme: 'web', name: 'Web' },
 ];
 const DIFFICULTIES = [
   { cols: 9, rows: 9, bombs: 10, name: 'Beginner' },
@@ -72,16 +73,18 @@ window.addEventListener('DOMContentLoaded', () => {
   display.addEventListener('secret-autoplay', () => {
     if (playing !== game) {
       playing = game;
+      display.base.classList.add('autoplay');
       playSlow(game, player, 50, () => (playing === game)).then(() => {
         if (playing === game) {
           playing = null;
         }
+        display.base.classList.remove('autoplay');
       });
     }
   });
 
   updateConfig({
-    ...THEMES[1],
+    ...THEMES[2],
     ...DIFFICULTIES[2],
   });
 });

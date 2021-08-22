@@ -1,9 +1,7 @@
 .window {
-  padding: 6px;
-  border-radius: 8px;
-  background: linear-gradient(175deg, #0088FF99, #FFFFFFBB 30%, #3388EE99 31%, #66BBFF99);
-  backdrop-filter: blur(4px);
-  box-shadow: inset 0 0 1px 1px #FFFFFF80, 0 0 1px black, 0 2px 15px #000000CC;
+  padding: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 0 8px #00000066;
 }
 
 dialog.window::backdrop {
@@ -11,67 +9,48 @@ dialog.window::backdrop {
 }
 
 .window>h1 {
-  display: inline-block;
-  padding: 2px 6px 7px 2px;
+  margin: -16px -16px 16px;
+  padding: 8px 8px 6px;
   font: 1em sans-serif;
-  text-shadow: 0 0 2px white, 0 0 4px white;
   position: relative;
-}
-.window>h1::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0.25em;
-  z-index: -1;
-  background: white;
-  border-radius: 100px;
-  filter: blur(4px);
-  opacity: 0.5;
+  text-align: center;
+  background: #EEEEEE;
+  border-bottom: 1px solid #DDDDDD;
 }
 .window>menu {
-  background: #DDDDDD99;
-  padding: 2px;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
+  margin: -16px -16px 16px;
+  background: #EEEEEE;
+  border-bottom: 1px solid #DDDDDD;
 }
 .window>menu button {
-  padding: 4px 6px;
+  padding: 8px 16px;
+  cursor: pointer;
 }
 .window>menu button:hover,
 .window>menu button:active {
-  background: #FFFFFF80;
+  background: #DDDDDD;
 }
 
-.window>:not(h1):not(menu) {
-  box-shadow: 0 0 1px 1px #FFFFFF80, inset 0 0 0 1px #000000AA;
-  border-radius: 0.5px;
-  background: #EEEEEE;
-}
 
 
 #settings form {
-  padding: 15px;
   font: 0.8em sans-serif;
   line-height: 1.3;
 }
 
 #settings fieldset {
-  border-radius: 5px;
-  border: 1px solid #CCDDEE;
-  box-shadow: inset 0 0 0 1px white;
-  padding: 15px 20px;
-  margin: 2px 0 15px;
+  border: 2px solid #DDDDDD;
+  padding: 16px;
+  margin: 0 0 16px;
 }
 
 #settings fieldset legend {
-  background: #EEEEEE;
+  padding: 0 8px;
 }
 
 #settings fieldset > section,
 #settings fieldset .presets {
-  gap: 10px 30px;
+  gap: 16px 32px;
 }
 
 #settings fieldset input[type="radio"] {
@@ -92,28 +71,25 @@ dialog.window::backdrop {
 }
 
 #settings button {
-  padding: 6px 10px;
-  border-radius: 3px;
-  box-shadow:
-    0 1px 1px #FFFFFF80,
-    inset 0 0 0 1px #808080,
-    inset 0 0 1px 2px #FFFFFF,
-    inset 0 0 2px #000000CC;
-  background: linear-gradient(#E8E8E8, #DDDDDD 45%, #CCCCCC 55%, #BBBBBB);
+  padding: 8px 16px;
+  border: 1px solid #808080;
+  background: #EEEEEE;
+  cursor: pointer;
+}
+#settings button[type="submit"] {
+  background: #0066CC;
+  color: #FFFFFF;
 }
 
 #settings button:focus, #settings button:hover {
-  background: linear-gradient(#EEEEEE, #E8E8E8 45%, #DDDDDD 55%, #CCCCCC);
+  background: #F8F8F8;
+}
+#settings button[type="submit"]:focus, #settings button[type="submit"]:hover {
+  background: #1188EE;
 }
 
 #settings button:active {
-  padding: 7px 10px 5px;
-  box-shadow:
-    0 1px 1px #FFFFFF80,
-    inset 0 0 0 1px #808080,
-    inset 0 0 5px #00000011,
-    inset 0 0 2px #000000CC;
-  background: linear-gradient(#C8C8C8, #CCCCCC 45%, #D8D8D8 55%, #DDDDDD);
+  box-shadow: inset 0 0 5px #00000033;
 }
 
 #settings menu {
@@ -121,54 +97,42 @@ dialog.window::backdrop {
 }
 
 #settings menu button {
-  margin-left: 15px;
+  margin-left: 16px;
 }
 
-
-.minesweeper {
-  padding: 6px;
-}
 
 .minesweeper .hud {
-  border-top: 2px solid grey;
-  border-left: 2px solid grey;
-  border-right: 2px solid white;
-  border-bottom: 2px solid white;
-  background: lightgrey;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .minesweeper .remaining { order: 1; }
 .minesweeper .score { order: 3; }
 .minesweeper .remaining,
 .minesweeper .score {
-  color: red;
-  font: bold 2rem monospace;
-  background: black;
+  color: #CC0000;
+  font: 1.8rem monospace;
+  background: #EEEEEE;
+  padding: 4px 0;
   width: 6rem;
   text-align: center;
 }
 
 .minesweeper .reset {
   order: 2;
-  width: 2rem;
-  height: 2rem;
-  font-size: 1.5rem;
-  border-top: 2px solid white;
-  border-left: 2px solid white;
-  border-right: 2px solid darkgrey;
-  border-bottom: 2px solid darkgrey;
-  box-shadow: 0 0 0 1px darkgrey;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 100%;
+  font-size: 2.6rem;
+  text-shadow: 0 0 8px #00000033;
   line-height: 1.3;
   text-align: center;
+  cursor: pointer;
 }
 .minesweeper .reset:active {
-  background: darkgrey;
-  border-color: transparent;
+  transform: scale(0.9);
 }
 .minesweeper .reset::before { content: "\1F642"; }
 .minesweeper.autoplay .reset::before { content: "\1F914"; }
@@ -176,24 +140,44 @@ dialog.window::backdrop {
 .minesweeper.over.success .reset::before { content: "\1F60E"; }
 .minesweeper.over.failure .reset::before { content: "\1F480"; }
 
+.minesweeper.over.success .reset, .minesweeper.over.failure .reset {
+  animation: pulse 1.5s linear infinite;
+}
+
+@keyframes pulse {
+  0% {
+    animation-timing-function: ease-in;
+    background: #FF660000;
+    box-shadow: 0 0 0 -1px #FF660000;
+  }
+
+  40% {
+    animation-timing-function: ease-out;
+    background: #FF6600AA;
+    box-shadow: 0 0 0 3px #FF6600AA;
+  }
+
+  90% {
+    background: #FF660000;
+    box-shadow: 0 0 0 8px #FF660000;
+  }
+}
+
 .minesweeper .minefield {
-  grid-auto-columns: calc(1rem + 4px);
-  grid-auto-rows: calc(1rem + 4px);
-  border-top: 1px solid grey;
-  border-left: 1px solid grey;
-  border-right: 2px solid white;
-  border-bottom: 2px solid white;
-  background: lightgrey;
+  grid-auto-columns: 1.8rem;
+  grid-auto-rows: 1.8rem;
+  border-top: 1px solid #808080;
+  border-left: 1px solid #808080;
 }
 
 .minesweeper .cell,
 .minesweeper .cell:disabled {
-  background: lightgrey;
-  border-top: 2px solid white;
-  border-left: 2px solid white;
-  border-right: 2px solid darkgrey;
-  border-bottom: 2px solid darkgrey;
-  font: 1rem sans-serif;
+  background: #c1e498;
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #808080;
+  border-bottom: 1px solid #808080;
+  font: 1.3rem sans-serif;
   text-align: center;
 }
 .minesweeper .cell::after {
@@ -205,7 +189,7 @@ dialog.window::backdrop {
 }
 .minesweeper:not(.picking) .cell:not(.flagged):active,
 .minesweeper.picking .cell:not(.flagged):hover {
-  background: darkgrey;
+  background: #bacca5;
   border-color: transparent;
 }
 .minesweeper.over.success .cell.bomb::before,
@@ -222,13 +206,12 @@ dialog.window::backdrop {
 .minesweeper .cell.cleared:not(.bomb)[data-count="7"]:disabled { color: #000000; }
 .minesweeper .cell.cleared:not(.bomb)[data-count="8"]:disabled { color: #808080; }
 
-.minesweeper .cell.cleared,
-.minesweeper.over.failure .cell.bomb:not(.flagged),
-.minesweeper.over .cell.flagged:not(.bomb) {
-  border-top: 1px solid grey;
-  border-left: 1px solid grey;
-  border-right: none;
-  border-bottom: none;
+.minesweeper .cell.cleared {
+  border-top: none;
+  border-left: none;
+  border-right: 1px solid #808080;
+  border-bottom: 1px solid #808080;
+  background: #e4d1c7;
 }
 
 .minesweeper.over .cell.flagged:not(.bomb)::before {
@@ -243,7 +226,8 @@ dialog.window::backdrop {
 .minesweeper.over.failure .cell.bomb:not(.flagged)::before {
   content: "\1F4A3";
   line-height: 1.4;
-  padding-left: 1px;
+  padding-left: 2px;
+  text-shadow: 0 0 3px #FFFFFF;
 }
 .minesweeper.over .cell.bomb.cleared { background: red; }
 .minesweeper.over .cell.bomb.cleared::after {
