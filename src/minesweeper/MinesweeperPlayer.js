@@ -155,6 +155,7 @@ function *findNextMoves(game, state) {
 
   let curRegions = regions;
   let depth = 0;
+  const limit = Math.floor(1000 / regions.length);
   while (curRegions.length) {
     for (const region of curRegions) {
       yield *applyRegion(game, region, state);
@@ -162,8 +163,13 @@ function *findNextMoves(game, state) {
     if (state.changed) {
       return;
     }
-    if (curRegions.length * regions.length > 100_000 || depth > 20) {
-      break;
+    if (curRegions.length > limit) {
+      curRegions.sort((a, b) => (a.cellIDs.length - b.cellIDs.length));
+      // large and small numbers of remaining cell IDs seem to be most useful, so take from start and end of list:
+      curRegions = [
+        ...curRegions.slice(0, limit >>> 1),
+        ...curRegions.slice(curRegions.length - (limit >>> 1)),
+      ];
     }
     curRegions = curRegions
       .flatMap((unionedRegion) => regions.flatMap((region) => combineRegions(unionedRegion, region)));
