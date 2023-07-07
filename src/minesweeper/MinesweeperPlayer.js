@@ -154,16 +154,16 @@ function *findNextMoves(game, state) {
     .filter((r) => r);
 
   let curRegions = regions;
-  let depth = 0;
   const limit = Math.floor(1000 / regions.length);
-  while (curRegions.length) {
+  for (let depth = 0; curRegions.length; ++depth) {
     for (const region of curRegions) {
       yield *applyRegion(game, region, state);
     }
     if (state.changed) {
       return;
     }
-    if (curRegions.length > limit) {
+    // always apply all 1 and 2 cell combinations, but prune larger combinations for speed
+    if (depth > 0 && curRegions.length > limit) {
       curRegions.sort((a, b) => (a.cellIDs.length - b.cellIDs.length));
       // large and small numbers of remaining cell IDs seem to be most useful, so take from start and end of list:
       curRegions = [
