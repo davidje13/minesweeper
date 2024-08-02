@@ -187,7 +187,7 @@ dialog.window::backdrop {
 }
 
 .minesweeper .cell,
-.minesweeper .cell:disabled {
+.minesweeper .cell.cleared {
   background: lightgrey;
   border-top: 2px solid white;
   border-left: 2px solid white;
@@ -203,8 +203,11 @@ dialog.window::backdrop {
   right: 0;
   text-align: center;
 }
-.minesweeper:not(.picking) .cell:not(.flagged):active,
-.minesweeper.picking .cell:not(.flagged):hover {
+.minesweeper:not(.picking) .cell:focus-visible:not(:active) {
+  filter: brightness(0.95);
+}
+.minesweeper:not(.picking) .cell:not(.flagged):not(.cleared):active,
+.minesweeper.picking .cell:not(.flagged):not(.cleared):hover {
   background: darkgrey;
   border-color: transparent;
 }
@@ -212,15 +215,15 @@ dialog.window::backdrop {
 .minesweeper .cell.flagged::before { content: "\2691"; color: #990033; }
 .minesweeper.over.success .cell.bomb:not(.flagged)::before { opacity: 0.3; }
 .minesweeper .cell.cleared:not(.bomb)::before { content: attr(data-count); }
-.minesweeper .cell.cleared:not(.bomb)[data-count="0"]:disabled::before { display: none; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="1"]:disabled { color: #0000FF; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="2"]:disabled { color: #008000; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="3"]:disabled { color: #CC0000; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="4"]:disabled { color: #000080; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="5"]:disabled { color: #800000; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="6"]:disabled { color: #008080; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="7"]:disabled { color: #000000; }
-.minesweeper .cell.cleared:not(.bomb)[data-count="8"]:disabled { color: #808080; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="0"]::before { display: none; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="1"] { color: #0000FF; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="2"] { color: #008000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="3"] { color: #CC0000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="4"] { color: #000080; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="5"] { color: #800000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="6"] { color: #008080; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="7"] { color: #000000; }
+.minesweeper .cell.cleared:not(.bomb)[data-count="8"] { color: #808080; }
 
 .minesweeper .cell.cleared,
 .minesweeper.over.failure .cell.bomb:not(.flagged),

@@ -75,7 +75,7 @@ class MinesweeperDisplay extends EventTarget {
 
     this.over = false;
     this.updateGameState();
-    this.updateAllCells(false);
+    this.updateAllCells();
 
     game.addEventListener('change', this.updateGameState);
     game.addEventListener('cellchange', this.cellChangeHandler);
@@ -107,24 +107,21 @@ class MinesweeperDisplay extends EventTarget {
     }));
   }
 
-  updateAllCells(onlyNonCleared) {
+  updateAllCells() {
     for (const id of this.game.grid.idList) {
-      this.updateCell(id, onlyNonCleared);
+      this.updateCell(id);
     }
   }
 
-  updateCell(id, onlyNonCleared) {
+  updateCell(id) {
     const cellData = this.game.cell(id);
-    if (onlyNonCleared && cellData.cleared) {
-      return;
-    }
 
     const cell = this.cells.get(id);
     if (cell) {
       cell.element.classList.toggle('flagged', cellData.flagged);
       cell.element.classList.toggle('cleared', cellData.cleared);
-      cell.element.disabled = this.over || cellData.cleared;
       cell.element.classList.toggle('bomb', Boolean(cellData.bomb));
+      cell.element.disabled = this.over;
       cell.element.dataset.count = cellData.count ?? '';
     }
   }
@@ -143,12 +140,12 @@ class MinesweeperDisplay extends EventTarget {
 
     if (over !== this.over) {
       this.over = over;
-      this.updateAllCells(true);
+      this.updateAllCells();
     }
   }
 
   cellChangeHandler(e) {
-    this.updateCell(e.detail, false);
+    this.updateCell(e.detail);
   }
 
   reset() {
@@ -178,10 +175,48 @@ class MinesweeperDisplay extends EventTarget {
     if (cell === null) {
       return;
     }
+    const cellData = this.game.cell(cell);
+    if (cellData.cleared) {
+      this.handleCompleteCell(cell, cellData);
+    } else {
+      this.handleSelectCell(e, cell);
+    }
+  }
+
+  handleSelectCell(e, cell) {
     if (e.altKey || e.metaKey) {
       this.game.toggleFlag(cell);
     } else {
       this.game.revealCell(cell);
+    }
+  }
+
+  handleCompleteCell(cell, cellData) {
+    const connectedIDs = this.game.grid.connectedIDs(cell);
+    const allConnected = (fn) => {
+      for (const connectedID of connectedIDs) {
+        const connectedCellData = this.game.cell(connectedID);
+        fn(connectedID, connectedCellData);
+      }
+    };
+    let flagged = 0;
+    let cleared = 0;
+    allConnected((_, connectedCellData) => {
+      flagged += connectedCellData.flagged ? 1 : 0;
+      cleared += connectedCellData.cleared ? 1 : 0;
+    });
+    if (flagged === cellData.count) {
+      allConnected((connectedID, connectedCellData) => {
+        if (!connectedCellData.cleared && !connectedCellData.flagged) {
+          this.game.revealCell(connectedID);
+        }
+      });
+    } else if (cleared === connectedIDs.length - cellData.count) {
+      allConnected((connectedID, connectedCellData) => {
+        if (!connectedCellData.cleared && !connectedCellData.flagged) {
+          this.game.toggleFlag(connectedID);
+        }
+      });
     }
   }
 
@@ -227,17 +262,10 @@ class MinesweeperDisplay extends EventTarget {
       this.resetButton.focus();
       return;
     }
-    const seen = new Set();
-    let cur = id;
-    do {
-      cur = this.cells.get(cur)?.[dir];
-      if (cur === undefined || seen.has(cur)) {
-        return; // looped
-      }
-      seen.add(cur);
-    } while (this.game.cell(cur)?.cleared !== false);
-
-    this.cells.get(cur)?.element.focus();
+    const next = this.cells.get(id)[dir];
+    if (next !== undefined) {
+      this.cells.get(next)?.element.focus();
+    }
   }
 
   cellMouseDown(e) {
@@ -256,7 +284,11 @@ class MinesweeperDisplay extends EventTarget {
     this.base.classList.remove('picking');
     window.removeEventListener('mouseup', this.cellMouseUp);
     if (e.target !== this.clickBegin) {
-      this.cellClick(e);
+      e.preventDefault();
+      const cell = this.getEventCell(e);
+      if (cell !== null) {
+        this.handleSelectCell(e, cell);
+      }
     }
     this.clickBegin = null;
   }

@@ -193,8 +193,8 @@ dialog.window::backdrop {
   image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
-.minesweeper:not(.picking) .cell:not(.flagged):active,
-.minesweeper.picking .cell:not(.flagged):hover { background-position: -16px 0; }
+.minesweeper:not(.picking) .cell:not(.flagged):not(.cleared):active,
+.minesweeper.picking .cell:not(.flagged):not(.cleared):hover { background-position: -16px 0; }
 .minesweeper.over.success .cell.bomb,
 .minesweeper .cell.flagged { background-position: -32px 0; }
 .minesweeper .cell.cleared:not(.bomb)[data-count="0"] { background-position: 0 -16px; }
