@@ -127,7 +127,7 @@ dialog.window::backdrop {
   border-radius: 100%;
   font-size: 2.6rem;
   text-shadow: 0 0 8px #00000033;
-  line-height: 1.3;
+  line-height: 1;
   text-align: center;
   cursor: pointer;
 }
