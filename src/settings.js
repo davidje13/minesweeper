@@ -63,6 +63,7 @@ class Settings extends EventTarget {
       e.preventDefault();
       this.dispatchEvent(new CustomEvent('submit', { detail: this.getCurrentState() }));
     });
+    this.form.addEventListener('keydown', (e) => e.stopPropagation());
   }
 
   populate({ theme, cols, rows, bombs }) {

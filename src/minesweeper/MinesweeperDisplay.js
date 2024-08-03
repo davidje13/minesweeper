@@ -4,6 +4,7 @@ class MinesweeperDisplay extends EventTarget {
     this.reset = this.reset.bind(this);
     this.secretAutoplay = this.secretAutoplay.bind(this);
     this.cellClick = this.cellClick.bind(this);
+    this.minefieldFocus = this.minefieldFocus.bind(this);
     this.cellKeyDown = this.cellKeyDown.bind(this);
     this.cellMouseDown = this.cellMouseDown.bind(this);
     this.cellMouseUp = this.cellMouseUp.bind(this);
@@ -34,11 +35,20 @@ class MinesweeperDisplay extends EventTarget {
 
     this.minefield = document.createElement('section');
     this.minefield.className = 'minefield';
+    this.minefield.setAttribute('tabindex', 0);
+    this.minefield.setAttribute('role', 'application');
+    this.minefield.setAttribute('aria-label', 'minefield - use arrow keys to navigate, spacebar or return to select, and backspace to flag');
     this.minefield.addEventListener('click', this.cellClick);
+    this.minefield.addEventListener('focus', this.minefieldFocus);
     window.addEventListener('keydown', this.cellKeyDown);
     this.minefield.addEventListener('mousedown', this.cellMouseDown);
     this.minefield.addEventListener('contextmenu', this.cellContext);
     this.base.appendChild(this.minefield);
+
+    // this prevents strange behaviour when tabbing away from the minefield (due to the buttons having a tabindex of -1 and the browser not tabbing away from the page)
+    this.afterFocus = document.createElement('div');
+    this.afterFocus.setAttribute('tabindex', 0);
+    this.base.appendChild(this.afterFocus);
 
     this.game = null;
     this.cells = new Map();
@@ -52,6 +62,7 @@ class MinesweeperDisplay extends EventTarget {
     this.resetButton.removeEventListener('click', this.reset);
     this.remaining.removeEventListener('dblclick', this.secretAutoplay);
     this.minefield.removeEventListener('click', this.cellClick);
+    this.minefield.removeEventListener('focus', this.minefieldFocus);
     window.removeEventListener('keydown', this.cellKeyDown);
     this.minefield.removeEventListener('mousedown', this.cellMouseDown);
     this.minefield.removeEventListener('contextmenu', this.cellContext);
@@ -94,6 +105,7 @@ class MinesweeperDisplay extends EventTarget {
     rows.forEach((row, y) => row.forEach((id, x) => {
       const cell = document.createElement('button');
       cell.className = 'cell';
+      cell.setAttribute('tabindex', -1);
       cell.style.gridArea = `${y + 1} / ${x + 1} / ${y + 2} / ${x + 2}`;
       cell.dataset.id = id;
       this.minefield.appendChild(cell);
@@ -163,10 +175,15 @@ class MinesweeperDisplay extends EventTarget {
       this.lastActive = id;
       return id;
     }
-    if (e.target === document.body && this.lastActive !== null) {
-      return this.lastActive;
-    }
     return null;
+  }
+
+  minefieldFocus(e) {
+    if (e.relatedTarget?.classList.contains('cell')) {
+      this.resetButton.focus();
+    } else if (this.lastActive !== null) {
+      this.cells.get(this.lastActive)?.element.focus();
+    }
   }
 
   cellClick(e) {
@@ -221,14 +238,14 @@ class MinesweeperDisplay extends EventTarget {
   }
 
   cellKeyDown(e) {
-    const cell = this.getEventCell(e);
-    if (cell === null) {
+    if (e.shiftKey || e.altKey || e.metaKey || e.ctrlKey) {
       return;
     }
+    const cell = this.getEventCell(e);
     switch (e.key) {
       case 'Backspace':
         e.preventDefault();
-        if (!e.repeat) {
+        if (cell !== null && !e.repeat) {
           this.game.toggleFlag(cell);
         }
         break;
@@ -262,9 +279,10 @@ class MinesweeperDisplay extends EventTarget {
       this.resetButton.focus();
       return;
     }
-    const next = this.cells.get(id)[dir];
+    const next = id === null ? (this.lastActive ?? 0) : this.cells.get(id)?.[dir];
     if (next !== undefined) {
       this.cells.get(next)?.element.focus();
+      this.lastActive = next;
     }
   }
 
@@ -288,6 +306,8 @@ class MinesweeperDisplay extends EventTarget {
       const cell = this.getEventCell(e);
       if (cell !== null) {
         this.handleSelectCell(e, cell);
+      } else {
+        this.minefield.focus();
       }
     }
     this.clickBegin = null;
